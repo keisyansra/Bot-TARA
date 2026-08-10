@@ -1,0 +1,9 @@
+python-telegram-bot==20.8
+telethon
+gspread
+google-auth
+python-dotenv
+psycopg2-binary
+rapidfuzz
+pandas
+openpyxl
