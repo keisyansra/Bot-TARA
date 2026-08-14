@@ -202,6 +202,8 @@ CREATE TABLE IF NOT EXISTS gold.prospect_recommendation (
     url_gmaps            TEXT,
     nearest_odp_id        BIGINT REFERENCES silver.odp_clean(id_odp),
     nearest_odp_name      TEXT,
+    nearest_odp_latitude  NUMERIC,
+    nearest_odp_longitude NUMERIC,
     odp_distance_m        NUMERIC,
     odp_available_port     INTEGER,
     badge_status         TEXT CHECK (badge_status IN ('siap_pasang', 'di_luar_radius', 'odp_tidak_ditemukan')),

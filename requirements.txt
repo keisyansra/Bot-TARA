@@ -6,3 +6,4 @@ geoalchemy2
 pandas
 rapidfuzz
 python-dotenv
+playwright
