@@ -33,13 +33,14 @@ def get_nearby_odp(
 
     query = text(f"""
         SELECT
-            odp_id, nama_odp, alamat, witel, avai,
+            id_odp, odp_name, witel, kabupaten_kota, provinsi,
+            available_port, total_port,
             latitude, longitude,
             ROUND(ST_Distance(
                 geom, ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography
             )::numeric, 1) AS distance_from_sales_m
         FROM silver.odp_clean
-        WHERE avai > 0
+        WHERE available_port > 0
         {radius_clause}
         ORDER BY geom <-> ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography
         LIMIT :limit;
@@ -51,11 +52,13 @@ def get_nearby_odp(
     formatted_data = []
     for r in rows:
         formatted_data.append({
-            "odp_id": r["odp_id"],
-            "name": r["nama_odp"],
-            "alamat": r["alamat"],
+            "odp_id": r["id_odp"],
+            "name": r["odp_name"],
             "witel": r["witel"],
-            "available_port": r["avai"],
+            "kabupaten_kota": r["kabupaten_kota"],
+            "provinsi": r["provinsi"],
+            "available_port": r["available_port"],
+            "total_port": r["total_port"],
             "latitude": float(r["latitude"]) if r["latitude"] is not None else None,
             "longitude": float(r["longitude"]) if r["longitude"] is not None else None,
             "distance_from_sales_m": float(r["distance_from_sales_m"]) if r["distance_from_sales_m"] is not None else None,
