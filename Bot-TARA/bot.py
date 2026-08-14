@@ -1,132 +1,49 @@
-import os
-import math
-import pandas as pd
-from dotenv import load_dotenv
-from telegram import (
-    Update, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove,
-    InlineKeyboardButton, InlineKeyboardMarkup
-)
+import logging
 from telegram.ext import (
-    ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler,
-    ContextTypes, filters
+    Application,
+    CommandHandler,
+    MessageHandler,
+    CallbackQueryHandler,
+    filters
 )
 
-load_dotenv()
-bot_token = os.getenv('BOT_TOKEN')
+from config import BOT_TOKEN
+from handlers.start_handler import start_command
+from handlers.flow2_handler import (
+    handle_flow2_menu,
+    handle_flow2_options,
+    handle_prospect_text_search, 
+    handle_location_search,
+    handle_odp_callback
+)
 
-# load dataset ODP (pake raw string 'r' biar backslash path Windows gak error)
-odp_df = pd.read_excel(r'C:\Magang 2026\Bot Telegram\DATA ODP WITEL JATIM BARAT 07072026.xlsx', sheet_name='Sheet3')
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
-# buang baris yang koordinatnya rusak
-odp_df = odp_df[
-    (odp_df['LATITUDE'] != 0) & (odp_df['LONGITUDE'] != 0) &
-    (odp_df['LATITUDE'].between(-11, 6)) & (odp_df['LONGITUDE'].between(95, 141))
-].reset_index(drop=True)
+def main():
+    if not BOT_TOKEN:
+        print("❌ Error: BOT_TOKEN belum diatur!")
+        return
 
+    app = Application.builder().token(BOT_TOKEN).build()
 
-def haversine(lat1, lon1, lat2, lon2):
-    R = 6371000
-    phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    d_phi = math.radians(lat2 - lat1)
-    d_lambda = math.radians(lon2 - lon1)
-    a = math.sin(d_phi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2) ** 2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return R * c
+    # --- HANDLERS PERINTAH ---
+    app.add_handler(CommandHandler("start", start_command))
 
+    # --- HANDLERS TOMBOL KLIK (CALLBACK) ---
+    app.add_handler(CallbackQueryHandler(start_command, pattern=r"^menu_back_main$"))
+    app.add_handler(CallbackQueryHandler(handle_flow2_menu, pattern=r"^menu_flow2$"))
+    app.add_handler(CallbackQueryHandler(handle_flow2_options, pattern=r"^flow2_"))
+    app.add_handler(CallbackQueryHandler(handle_odp_callback, pattern=r"^check_odp_"))
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id,
-                                    text="Halo! Selamat datang di bot Telegram saya.")
-    await menu(update, context)   
+    # --- HANDLERS INPUT PESAN ---
+    app.add_handler(MessageHandler(filters.LOCATION, handle_location_search))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_prospect_text_search))
 
-async def puisi(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text_puisi = "bercahayalah jika kamu ingin dicintai setiap lawan jenis. 😉"
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=text_puisi)
+    print("🚀 Bot TARA Berhasil Dijalankan! Siap Menerima Pesan...")
+    app.run_polling()
 
-
-async def pantun(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text_pantun = "jalan-jalan ke jakarta barat, pulangnya beli sempolan. kalau kamu tidak ingin bersahabat, mari kita pacaran"
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=text_pantun)
-
-
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = update.message.text
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
-    print(f"pesan dari user: {message}")
-
-
-# INLINE KEYBOARD BUTTONS
-async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        [InlineKeyboardButton("📍 Cari ODP", callback_data='cari_odp')],
-        [InlineKeyboardButton("❓ Bantuan", callback_data='bantuan')]
-    ]
-    await update.message.reply_text("Pilih menu:", reply_markup=InlineKeyboardMarkup(keyboard))
-
-
-# yang terjadi setelah button ditekan
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
-    if query.data == 'cari_odp':
-        tombol = KeyboardButton("📍 Kirim Lokasi Saya", request_location=True)
-        keyboard = ReplyKeyboardMarkup([[tombol]], resize_keyboard=True, one_time_keyboard=True)
-        await context.bot.send_message(
-            chat_id=query.message.chat_id,
-            text="Kirim titik koordinat kamu 📍\n\n_Proses ambil lokasi GPS mungkin memakan waktu beberapa detik._",
-            reply_markup=keyboard,
-            parse_mode='Markdown'
-        )
-    elif query.data == 'bantuan':
-        await query.edit_message_text("Ketik /menu untuk menampilkan menu utama.")
-
-
-# proses lokasi yang diterima dari user
-async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_lat = update.message.location.latitude
-    user_lon = update.message.location.longitude
-
-    # kirim pesan sedang proses 
-    processing_msg = await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text="Sedang mencari ODP terdekat... ⏳",
-        reply_markup=ReplyKeyboardRemove()
-    )
-
-    jarak_list = []
-    for _, row in odp_df.iterrows():
-        jarak = haversine(user_lat, user_lon, row['LATITUDE'], row['LONGITUDE'])
-        jarak_list.append({
-            'STO': row['Telkom STO'],
-            'ODP': row['ODP NAME'],
-            'Jarak': jarak,
-            'Sisa': row['AVAI'],
-            'Lat' : row['LATITUDE'],
-            'Lon' : row['LONGITUDE']
-        })
-    terdekat = sorted(jarak_list, key=lambda x: x['Jarak'])[:5]
-
-    teks = f"Daftar 5 ODP terdekat:\n{'-'*30}\n"
-    for i, o in enumerate(terdekat, start=1):
-        status = "✅" if o['Sisa'] > 0 else "❌"
-        maps_url = f"https://www.google.com/maps/dir/?api=1&destination={o['Lat']},{o['Lon']}"
-        teks += f"{i}. {o['STO']} | {o['ODP']} | {o['Jarak']:.1f}m | Sisa: {o['Sisa']} {status} | {maps_url}\n"
-
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=teks,
-        reply_markup=ReplyKeyboardRemove()
-    )
-
-
-app = ApplicationBuilder().token(bot_token).build()
-app.add_handler(CommandHandler('start', start))
-app.add_handler(CommandHandler('puisi', puisi))
-app.add_handler(CommandHandler('pantun', pantun))
-app.add_handler(CommandHandler('menu', menu))
-app.add_handler(CallbackQueryHandler(button_handler))
-app.add_handler(MessageHandler(filters.LOCATION, handle_location))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
-
-app.run_polling()
+if __name__ == "__main__":
+    main()
