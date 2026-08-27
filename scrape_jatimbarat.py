@@ -146,9 +146,9 @@ if __name__ == "__main__":
 
     kota_list = [
         # Witel Kediri
-        "Kediri", "Nganjuk", "Tulungagung", "Blitar", "Kota Kediri", "Trenggalek", "Kota Blitar",
+        "Kediri", "Nganjuk", "Tulungagung", "Blitar", "Trenggalek",
         # Witel Madiun
-        "Tuban", "Bojonegoro", "Ponorogo", "Ngawi", "Magetan", "Madiun", "Kota Madiun", "Pacitan",
+        "Tuban", "Bojonegoro", "Ponorogo", "Ngawi", "Magetan", "Madiun", "Pacitan",
         # Witel Malang 
         "Malang", "Kepanjen", "Batu"
     ] 
@@ -159,7 +159,7 @@ if __name__ == "__main__":
 
     JUMLAH_MAKSIMAL_PER_KEYWORD = None  # None = ambil semua yang ketemu
 
-    FOLDER_OUTPUT = "data/Scraping_PTCV_JatimBarat"
+    FOLDER_OUTPUT = "Bot-TARA/data/data_scraping/Scraping_PTCV_JatimBarat"
 
     # ============================================================
     # CHECKPOINT: tiap kota selesai, langsung disimpan ke file SENDIRI.

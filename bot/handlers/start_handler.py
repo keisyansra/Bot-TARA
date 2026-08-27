@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handler /start atau callback tombol Kembali ke Menu Utama"""
+    context.user_data["active_flow"] = None
     user_name = update.effective_user.first_name if update.effective_user else "Kak"
 
     text = (
@@ -12,8 +13,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     keyboard = [
-        [InlineKeyboardButton("🔍 Flow 2: Search Prospek & Cek ODP", callback_data="menu_flow2")],
-        [InlineKeyboardButton("📈 Flow 3: Analytics Bottleneck (>90%)", callback_data="menu_flow3")],
+        [InlineKeyboardButton("📍 Cari ODP Terdekat", callback_data="menu_flow1")],
+        [InlineKeyboardButton("🔍 Search Prospek & Cek ODP", callback_data="menu_flow2")],
+        [InlineKeyboardButton("📈 Analytics Bottleneck (>90%)", callback_data="menu_flow3")],
+        
         [InlineKeyboardButton("❓ Bantuan / Cara Penggunaan", callback_data="menu_help")]
     ]
 

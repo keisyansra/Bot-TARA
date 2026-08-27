@@ -1,7 +1,7 @@
 import html
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from services.db_service import get_nearby_prospects_from_fastapi, search_prospects_from_fastapi
+from bot.services.db_service import get_nearby_prospects_from_fastapi, search_prospects_from_fastapi
 
 async def handle_flow2_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handler Menu Utama Flow 2"""
