@@ -1,8 +1,9 @@
 import requests
 
-FASTAPI_BASE_URL = "http://192.168.15.146:8000"  # Sesuaikan IP/URL jika beda laptop
 
-def get_nearby_prospects_from_fastapi(lat: float, lon: float, limit: int = 5):
+FASTAPI_BASE_URL = "http://192.168.15.146:8000"  
+
+def get_nearby_prospects_from_fastapi(lat: float, lon: float, limit: int = 20):
     """Menembak GET /api/prospects/nearby"""
     try:
         url = f"{FASTAPI_BASE_URL}/api/prospects/nearby"
@@ -18,10 +19,10 @@ def get_nearby_prospects_from_fastapi(lat: float, lon: float, limit: int = 5):
         else:
             print(f"❌ HTTP Error {response.status_code}: {response.text}")
     except Exception as e:
-        print(f"❌ Error HTTP ke API Dyan (Nearby): {e}")
+        print(f"❌ Error HTTP (Nearby): {e}")
     return []
 
-def search_prospects_from_fastapi(query: str, limit: int = 5):
+def search_prospects_from_fastapi(query: str, limit: int = 20):
     """Menembak GET /api/prospects/search"""
     try:
         url = f"{FASTAPI_BASE_URL}/api/prospects/search"
@@ -37,5 +38,5 @@ def search_prospects_from_fastapi(query: str, limit: int = 5):
         else:
             print(f"❌ HTTP Error {response.status_code}: {response.text}")
     except Exception as e:
-        print(f"❌ Error HTTP ke API Dyan (Search): {e}")
+        print(f"❌ Error HTTP ke API (Search): {e}")
     return []

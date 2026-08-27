@@ -4,7 +4,7 @@ from services.db_service import get_prospect_data, get_odp_data
 
 def calculate_haversine_distance(lat1, lon1, lat2, lon2):
     """Menghitung jarak antara 2 titik koordinat (dalam meter)"""
-    R = 6371000  # Radius bumi dalam meter
+    R = 6371000  
     phi1 = math.radians(lat1)
     phi2 = math.radians(lat2)
     delta_phi = math.radians(lat2 - lat1)
@@ -45,7 +45,7 @@ def find_nearest_prospects_by_location(sales_lat, sales_long, limit=5):
         except Exception:
             continue
 
-    # Urutkan berdasarkan jarak terdekat dari lokasi sales dan ambil top 5
+   
     prospect_list.sort(key=lambda x: x['distance_m'])
     return prospect_list[:limit]
 
@@ -77,8 +77,8 @@ def find_nearby_odps(lat, long, max_distance=250):
                     "port_tersedia": avail_port,
                     "kapasitas": total_cap,
                     "status": status_color,
-                    "latitude": odp_lat,     # SIMPAN LAT ODP
-                    "longitude": odp_long    # SIMPAN LONG ODP
+                    "latitude": odp_lat,     
+                    "longitude": odp_long    
                 })
         except Exception:
             continue
