@@ -67,32 +67,26 @@ async def handle_flow1_map_location(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
+    """
+    Memberikan petunjuk kepada user untuk memilih
+    lokasi menggunakan fitur Location bawaan Telegram.
+    """
+
     context.user_data["active_flow"] = "flow1"
 
     query = update.callback_query
     await query.answer()
 
-    tombol_lokasi = KeyboardButton(
-        "🗺️ Tentukan Lokasi di Peta",
-        request_location=True
-    )
-
-    keyboard = ReplyKeyboardMarkup(
-        [[tombol_lokasi]],
-        resize_keyboard=True,
-        one_time_keyboard=True
-    )
-
     await query.message.reply_text(
         "🗺️ <b>TENTUKAN LOKASI DI PETA</b>\n\n"
         "Untuk menentukan lokasi secara manual:\n\n"
-        "<b>1.</b> Tekan ikon 📎 <b>Attachment</b> di samping kolom pesan.\n\n"
-        "<b>2.</b> Pilih <b>Location / Lokasi</b>.\n\n"
-        "<b>3.</b> Geser peta sampai titik berada di lokasi yang ingin kamu cek.\n\n"
-        "<b>4.</b> Tekan <b>Kirim Lokasi Ini</b>.\n\n"
-        "📍 Setelah lokasi dikirim, Bot TARA akan mencari <b>5 ODP terdekat</b>.",
-        parse_mode="HTML",
-        reply_markup=keyboard
+        "1. Tekan ikon 📎 <b>Attachment</b> di samping kolom pesan.\n"
+        "2. Pilih <b>Location / Lokasi</b>.\n"
+        "3. Geser peta sampai titik berada di lokasi yang ingin kamu cek.\n"
+        "4. Tekan <b>Send selected location</b> / <b>Kirim lokasi yang dipilih</b>.\n\n"
+        "📍 Setelah lokasi dikirim, Bot TARA akan mencari "
+        "<b>5 ODP terdekat</b>.",
+        parse_mode="HTML"
     )
 
 
