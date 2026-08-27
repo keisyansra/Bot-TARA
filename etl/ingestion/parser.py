@@ -9,18 +9,32 @@ def parse_coordinate_from_url(url):
     """
     if not url:
         return None, None
-        
-    # Coba pattern @lat,long
+
     match = re.search(r"@(-?\d+\.\d+),(-?\d+\.\d+)", url)
     if match:
         return match.group(1), match.group(2)
-        
-    # Coba pattern !3dlat!4dlong
+
     match = re.search(r"!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)", url)
     if match:
         return match.group(1), match.group(2)
-        
+
     return None, None
+
+
+def cocok_kategori(nama, kategori_list=("PT", "CV", "UD")):
+    """
+    Cek apakah nama tempat beneran mengandung salah satu kata kunci
+    badan usaha (PT/CV/UD) sebagai kata utuh -- nyaring hasil yang
+    Maps balikin pas search "PT di Malang" tapi ternyata bukan PT
+    beneran (nama_normalized-nya cuma numpang lolos di full-text Maps).
+    Dipinjam dari pendekatan temen, diadaptasi buat feed-scroll (bukan
+    click-detail).
+    """
+    if not nama:
+        return False
+    pattern = r"\b(" + "|".join(re.escape(k) for k in kategori_list) + r")\b"
+    return bool(re.search(pattern, nama, re.IGNORECASE))
+
 
 def parse_result_card(element_handle, kategori):
     """
@@ -32,57 +46,48 @@ def parse_result_card(element_handle, kategori):
         link_el = element_handle.query_selector('a[href*="/maps/place/"]')
         if not link_el:
             return None
-            
+
         url_gmaps = link_el.get_attribute("href")
         if url_gmaps and url_gmaps.startswith("http"):
-            # Clean up the URL slightly
             pass
         elif url_gmaps:
             url_gmaps = "https://www.google.com" + url_gmaps
         else:
             return None
-            
+
         # Nama biasanya ada di aria-label dari link utama
-        nama = link_el.get_attribute("aria-label") or ""
-        
-        # Ekstrak rating
-        # Biasanya ada di span dengan aria-label="X bintang" atau text dengan format angka desimal
-        # Kita coba ekstrak teks di dalam elemen
+        nama = (link_el.get_attribute("aria-label") or "").strip()
+
+        # FILTER: skip di sini juga kalau namanya gak beneran PT/CV/UD --
+        # sebelum buang waktu regex rating/telepon/alamat yang gak perlu.
+        if not cocok_kategori(nama):
+            return None
+
         inner_text = element_handle.inner_text()
-        
-        # Contoh pattern rating: "4,5", "4.5", "5,0" di teks
+
         rating_match = re.search(r"(\d[.,]\d)\s*(?:\(|bintang)", inner_text, re.IGNORECASE)
         rating = rating_match.group(1).replace(",", ".") if rating_match else None
-        
-        # Ekstrak telepon dari teks (pattern umum nomor telepon Indonesia)
-        # Menghindari koordinat, hanya angka dengan awalan +62 atau 0 (kode area atau HP)
+
         phone_match = re.search(r"\b((?:\+62|0\d{2,3})[-\s]?\d{4,5}[-\s]?\d{3,5})\b", inner_text)
         telepon = phone_match.group(1).strip() if phone_match else None
-        
-        # Ekstrak alamat kasar (ambil baris setelah nama/rating/kategori)
-        # Ini hanya aproksimasi kasar karena struktur HTML Maps yang kompleks dan dinamis.
-        # Biasanya dipisah dengan newline di inner_text
+
         lines = [line.strip() for line in inner_text.split('\n') if line.strip()]
         alamat = None
         for i, line in enumerate(lines):
-            # Pisahkan kategori dari string jika ada pemisah '·'
             if '·' in line:
                 parts = line.split('·')
-                line = parts[-1].strip() # Ambil bagian terakhir yang biasanya adalah alamat
-                
+                line = parts[-1].strip()
+
             line_lower = line.lower()
-            # Asumsi: baris yang panjang atau mengandung kata "Jl.", "Jalan", "Kec.", "Kab." adalah alamat
             if len(line) > 10 and any(keyword in line_lower for keyword in ["jl.", "jalan", "raya", "kec", "kab", "kota", ","]):
-                # Pastikan bukan sekadar nomor telepon atau koordinat
                 if not re.match(r"^[0-9\s+-,.]+$", line):
                     alamat = line
                     break
-        
-        # Parse coordinate from URL
+
         lat, lon = parse_coordinate_from_url(url_gmaps)
-        
+
         return {
-            "nama": nama.strip(),
+            "nama": nama,
             "kategori": kategori,
             "alamat": alamat,
             "telepon": telepon,
@@ -92,13 +97,16 @@ def parse_result_card(element_handle, kategori):
             "url_gmaps": url_gmaps
         }
     except Exception as e:
-        # Silently ignore parsing errors for individual cards to not stop the whole scraping
         return None
 
+
 if __name__ == "__main__":
-    # Test cases for coordinates
     lat, lon = parse_coordinate_from_url("https://www.google.com/maps/place/test/@-7.96662,112.632632,15z/")
     print(f"Test 1 - lat: {lat}, lon: {lon}")
-    
+
     lat, lon = parse_coordinate_from_url("https://www.google.com/maps/data=!3d-7.96662!4d112.632632")
     print(f"Test 2 - lat: {lat}, lon: {lon}")
+
+    # Test filter kategori
+    print(cocok_kategori("PT Maju Jaya Sentosa"))   # True
+    print(cocok_kategori("Warung Bu Siti"))          # False

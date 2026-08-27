@@ -9,12 +9,13 @@ Test lokal: buka http://localhost:8000/docs
 """
 from fastapi import FastAPI
 
-from api.routers import prospects, odp
+from api.routers import prospects, odp, admin
 
 app = FastAPI(title="Bot TARA Backend", version="0.1.0")
 
 app.include_router(prospects.router, prefix="/api/prospects", tags=["prospects"])
 app.include_router(odp.router, prefix="/api/odp", tags=["odp"])
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
 
 @app.get("/")
