@@ -17,5 +17,32 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-botuser} -d ${DB_NAME:-bot_telkom}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bot_telkom_api
+    restart: unless-stopped
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-botuser}:${DB_PASSWORD:-botpass}@db:5432/${DB_NAME:-bot_telkom}
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./api:/app/api
+      - ./etl:/app/etl
+
 volumes:
   db_data:
