@@ -2,8 +2,6 @@ import html
 
 from telegram import (
     Update,
-    KeyboardButton,
-    ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -11,7 +9,7 @@ from telegram import (
 from telegram.ext import ContextTypes
 
 from services.db_service import get_nearby_odps_from_fastapi
-from services.external_api import search_location, reverse_location
+from services.external_api import search_location, reverse_location 
 
 async def handle_flow1_menu(
     update: Update,
@@ -19,7 +17,7 @@ async def handle_flow1_menu(
 ):
     """
     Menampilkan pilihan cara mencari ODP:
-    1. Menggunakan lokasi GPS user
+    1. Menentukan lokasi melalui Telegram
     2. Mencari lokasi berdasarkan nama/alamat
     """
 
@@ -30,19 +28,13 @@ async def handle_flow1_menu(
     keyboard = [
         [
             InlineKeyboardButton(
-                "📍 Gunakan Lokasi Saya",
-                callback_data="flow1_current_location"
-            )
-        ],
-        [
-            InlineKeyboardButton(
                 "🗺️ Tentukan Lokasi di Peta",
                 callback_data="flow1_map_location"
             )
         ],
         [
             InlineKeyboardButton(
-                "🔎 Cari Lokasi",
+                "🔎 Cari ODP",
                 callback_data="flow1_search_location"
             )
         ],
@@ -54,7 +46,7 @@ async def handle_flow1_menu(
         ]
     ]
 
-    await query.message.reply_text(
+    await query.message.edit_text(
         "📡 <b>CARI ODP</b>\n\n"
         "Bagaimana kamu ingin menentukan lokasi?",
         parse_mode="HTML",
@@ -75,49 +67,23 @@ async def handle_flow1_map_location(
     query = update.callback_query
     await query.answer()
 
-    await query.message.reply_text(
-        "🗺️ <b>TENTUKAN LOKASI DI PETA</b>\n\n"
-        "Untuk menentukan lokasi secara manual:\n\n"
-        "1. Tekan ikon 📎 <b>Attachment</b> di samping kolom pesan.\n"
-        "2. Pilih <b>Location / Lokasi</b>.\n"
-        "3. Geser peta sampai titik berada di lokasi yang ingin kamu cek.\n"
-        "4. Tekan <b>Send selected location</b> / <b>Kirim lokasi yang dipilih</b>.\n\n"
-        "📍 Setelah lokasi dikirim, Bot TARA akan mencari "
-        "<b>5 ODP terdekat</b>.",
-        parse_mode="HTML"
-    )
+    keyboard_back = [[
+        InlineKeyboardButton(
+            "⬅️ Kembali ke Pilihan Flow 1",
+            callback_data="menu_flow1"
+        )
+    ]]
 
-
-async def handle_flow1_current_location(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-    """
-    Menampilkan tombol Telegram untuk mengirim lokasi GPS user.
-    """
-    context.user_data["active_flow"] = "flow1"
-    query = update.callback_query
-    await query.answer()
-
-    tombol_lokasi = KeyboardButton(
-        "📍 Kirim Lokasi Saya",
-        request_location=True
-    )
-
-    keyboard = ReplyKeyboardMarkup(
-        [[tombol_lokasi]],
-        resize_keyboard=True,
-        one_time_keyboard=True
-    )
-
-    await query.message.reply_text(
-        "📍 <b>GUNAKAN LOKASI SAYA</b>\n\n"
-        "Silakan tekan tombol di bawah untuk "
-        "mengirim lokasi kamu.",
+    await query.message.edit_text(
+        "📍 <b>PETUNJUK PENGIRIMAN LOKASI</b>\n\n"
+        "Silakan gunakan fitur lokasi bawaan Telegram:\n\n"
+        "1. Tekan ikon Lampiran (📎) di samping kolom pesan.\n"
+        "2. Pilih menu Location / Lokasi.\n"
+        "3. Pilih Send My Current Location (Lokasi saat ini) ATAU geser peta dan tekan Send selected location (Lokasi pilihan).\n\n"
+        "📡 Setelah lokasi dikirim, Bot TARA akan mencari 5 ODP terdekat dari titik tersebut.",
         parse_mode="HTML",
-        reply_markup=keyboard
+        reply_markup=InlineKeyboardMarkup(keyboard_back)
     )
-
 
 async def handle_flow1_search_location(
     update: Update,
@@ -131,8 +97,9 @@ async def handle_flow1_search_location(
     await query.answer()
 
     await query.message.reply_text(
-        "🔎 <b>CARI LOKASI</b>\n\n"
+        "🔎 <b>CARI ODP</b>\n\n"
         "Ketik nama lokasi atau alamat yang ingin kamu cari.\n\n"
+        "Bot TARA akan mencari 5 ODP terdekat dari lokasi tersebut.\n\n"
         "Contoh:\n"
         "• Alun-Alun Kota Malang\n"
         "• Jl. Soekarno Hatta, Malang\n"
@@ -159,8 +126,7 @@ async def handle_flow1_location_search_text(
     if not context.user_data.get("flow1_searching_location"):
         return
 
-    # Matikan mode pencarian
-    context.user_data["flow1_searching_location"] = False
+    context.user_data["flow1_searching_location"] = True
 
     processing_msg = await update.message.reply_text(
         "🔎 Sedang mencari lokasi... ⏳"
@@ -257,7 +223,7 @@ async def send_nearby_odps(
         keyboard = [
             [
                 InlineKeyboardButton(
-                    "🔄 Cari Lagi",
+                    "⬅️ Kembali ke Pilihan Flow 1",
                     callback_data="flow1_retry"
                 )
             ],
@@ -323,7 +289,7 @@ async def send_nearby_odps(
     # Tombol navigasi
     keyboard.append([
         InlineKeyboardButton(
-            "🔄 Cari Lagi",
+            "⬅️ Kembali ke Pilihan Flow 1",
             callback_data="flow1_retry"
         )
     ])
@@ -357,19 +323,13 @@ async def handle_flow1_retry(
     keyboard = [
         [
             InlineKeyboardButton(
-                "📍 Gunakan Lokasi Saya",
-                callback_data="flow1_current_location"
-            )
-        ],
-        [
-            InlineKeyboardButton(
                 "🗺️ Tentukan Lokasi di Peta",
                 callback_data="flow1_map_location"
             )
         ],
         [
             InlineKeyboardButton(
-                "🔎 Cari Lokasi",
+                "🔎 Cari ODP",
                 callback_data="flow1_search_location"
             )
         ],

@@ -205,7 +205,12 @@ async def handle_flow2_options(update: Update, context: ContextTypes.DEFAULT_TYP
     if query.data == "flow2_by_pt":
         context.user_data['search_mode'] = 'PT'
         await query.message.edit_text(
-            "👉 Silakan ketik *Nama PT atau CV* yang ingin dicari:", 
+            "🔎 *CARI NAMA PT/CV*\n\n"
+            "Ketik nama PT atau CV yang ingin kamu cari.\n\n"
+            "Contoh:\n"
+            "• CV Bintang\n"
+            "• PT Batu Karang Produksi SKT Unit 1\n"
+            "• CV Gunung Batu Penjuru",
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(keyboard_back)
         )
@@ -240,18 +245,24 @@ async def handle_flow2_options(update: Update, context: ContextTypes.DEFAULT_TYP
         )
 
     elif query.data == "flow2_by_location":
+        location_keyboard_back = [[
+            InlineKeyboardButton(
+                "⬅️ Kembali ke Pilihan Flow 2",
+                callback_data="menu_flow2"
+            )
+        ]]
         instructions = (
-            "📍 *PETUNJUK PENGIRIMAN LOKASI GPS*\n\n"
-            "Silakan gunakan fitur lokasi bawaan Telegram:\n"
-            "1. Tekan ikon **Lampiran / Klip Kertas (📎)** di pojok bawah.\n"
-            "2. Pilih menu **Location / Lokasi**.\n"
-            "3. Klik **Send My Current Location** atau pilih titik pada peta.\n\n"
-            "_Bot akan menampilkan prospek terdekat di sekitar lokasi Anda._"
+            "📍 *PETUNJUK PENGIRIMAN LOKASI*\n\n"
+            "Silakan gunakan fitur lokasi bawaan Telegram:\n\n"
+            "1. Tekan ikon Lampiran (📎) di samping kolom pesan.\n"
+            "2. Pilih menu Location / Lokasi.\n"
+            "3. Pilih Send My Current Location (Lokasi saat ini) ATAU geser peta dan tekan Send selected location (Lokasi pilihan).\n\n"
+            "🏢 Setelah lokasi dikirim, Bot akan mencari daftar prospek target di sekitar titik tersebut."
         )
         await query.message.edit_text(
             instructions, 
             parse_mode="Markdown",
-            reply_markup=InlineKeyboardMarkup(keyboard_back)
+            reply_markup=InlineKeyboardMarkup(location_keyboard_back)
         )
 
 async def handle_city_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
