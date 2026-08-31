@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS bronze.odp_raw (
     telkom_regional            TEXT,
     telkom_witel              TEXT,
     telkom_datel              TEXT,
+    telda                     TEXT,
     telkom_sto                TEXT,
     telkom_sto_deskripsi       TEXT,
     odp_info                  TEXT,
@@ -117,7 +118,7 @@ CREATE TABLE IF NOT EXISTS silver.cbase_clean (
     nipnas                  TEXT PRIMARY KEY,
     witel_ho                 TEXT,
     standard_name             TEXT NOT NULL,
-    standard_name_normalized   TEXT NOT NULL,
+    nama_normalized            TEXT NOT NULL,
     total_sustain             NUMERIC,
     revenue_ge_75jt            BOOLEAN,
     eksisting_nik_mapping      TEXT,
@@ -125,7 +126,7 @@ CREATE TABLE IF NOT EXISTS silver.cbase_clean (
     batch_id                 TEXT NOT NULL,
     cleaned_at                TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_cbase_clean_name_norm ON silver.cbase_clean (standard_name_normalized);
+CREATE INDEX IF NOT EXISTS idx_cbase_clean_name_norm ON silver.cbase_clean (nama_normalized);
 
 CREATE TABLE IF NOT EXISTS silver.prospect_clean (
     prospect_id       BIGSERIAL PRIMARY KEY,
@@ -173,16 +174,20 @@ CREATE INDEX IF NOT EXISTS idx_odp_clean_geom ON silver.odp_clean USING GIST (ge
 CREATE INDEX IF NOT EXISTS idx_odp_clean_available ON silver.odp_clean (available_port) WHERE available_port > 0;
 
 CREATE TABLE IF NOT EXISTS silver.prospect_customer_match (
-    match_id      BIGSERIAL PRIMARY KEY,
-    prospect_id    BIGINT NOT NULL REFERENCES silver.prospect_clean(prospect_id),
-    nipnas         TEXT REFERENCES silver.cbase_clean(nipnas),  -- null = belum berlangganan
-    match_score    NUMERIC,                                     -- skor rapidfuzz
-    status         TEXT NOT NULL CHECK (status IN ('EKSIS', 'BELUM_BERLANGGANAN')),
-    batch_id       TEXT NOT NULL,
-    matched_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (prospect_id, batch_id)
+    prospect_id                BIGINT PRIMARY KEY REFERENCES silver.prospect_clean(prospect_id),
+    prospect_name              TEXT NOT NULL,
+    prospect_name_normalized   TEXT NOT NULL,
+    prospect_wilayah           TEXT NOT NULL,
+    matched_nipnas             TEXT REFERENCES silver.cbase_clean(nipnas),
+    matched_standard_name      TEXT,
+    matched_name_normalized    TEXT,
+    match_score                NUMERIC,
+    match_status               TEXT NOT NULL,
+    matcher_version            TEXT NOT NULL,
+    batch_id                   TEXT NOT NULL,
+    matched_at                 TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_match_status ON silver.prospect_customer_match (status);
+CREATE INDEX IF NOT EXISTS idx_match_status ON silver.prospect_customer_match (match_status);
 
 -- ============================================================
 -- GOLD — snapshot terkini, siap query realtime.
@@ -200,6 +205,8 @@ CREATE TABLE IF NOT EXISTS gold.prospect_recommendation (
     geom               GEOGRAPHY(POINT, 4326) NOT NULL,
     wilayah             TEXT NOT NULL,
     url_gmaps            TEXT,
+    customer_match_status TEXT,
+    customer_match_score  NUMERIC,
     nearest_odp_id        BIGINT REFERENCES silver.odp_clean(id_odp),
     nearest_odp_name      TEXT,
     nearest_odp_latitude  NUMERIC,
