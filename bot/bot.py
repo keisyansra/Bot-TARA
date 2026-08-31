@@ -25,7 +25,6 @@ from handlers.help_handler import help_command
 
 from handlers.flow1_handler import (
     handle_flow1_menu,
-    handle_flow1_current_location,
     handle_flow1_search_location,
     handle_flow1_location_search_text,
     handle_flow1_location_gps,
@@ -147,13 +146,6 @@ def main():
         CallbackQueryHandler(
             handle_flow1_menu,
             pattern=r"^menu_flow1$"
-        )
-    )
-
-    app.add_handler(
-        CallbackQueryHandler(
-            handle_flow1_current_location,
-            pattern=r"^flow1_current_location$"
         )
     )
 

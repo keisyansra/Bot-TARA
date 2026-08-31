@@ -79,8 +79,6 @@ async def start_command(
     keyboard = [
         [InlineKeyboardButton("📍 Cari ODP Terdekat", callback_data="menu_flow1")],
         [InlineKeyboardButton("🔍 Search Prospek & Cek ODP", callback_data="menu_flow2")],
-        [InlineKeyboardButton("📈 Analytics Bottleneck (>90%)", callback_data="menu_flow3")],
-        
         [InlineKeyboardButton("❓ Bantuan / Cara Penggunaan", callback_data="menu_help")]
     ]
 
