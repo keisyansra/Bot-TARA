@@ -175,6 +175,7 @@ async def handle_mark_visited(update: Update, context: ContextTypes.DEFAULT_TYPE
         pass
 
 async def handle_flow2_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["active_flow"] = "flow2"
     query = update.callback_query
     await query.answer()
 
@@ -194,6 +195,8 @@ async def handle_flow2_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # flow utama (search pt cv)
 async def handle_flow2_options(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["active_flow"] = "flow2"
+    
     query = update.callback_query
     await query.answer()
 

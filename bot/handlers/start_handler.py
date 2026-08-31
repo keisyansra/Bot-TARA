@@ -3,11 +3,20 @@ from telegram.ext import ContextTypes
 from config import ADMIN_ID
 from services.user_service import get_user_role, register_user, update_user_role
 
-async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+) -> None:
+
+    """Handler /start atau callback tombol Kembali ke Menu Utama"""
+
+    context.user_data["active_flow"] = None
+
     user = update.effective_user
     user_id = user.id
     username = user.username or "-"
     full_name = user.full_name or "-"
+    user_name = user.first_name or "Kak"
 
     role = get_user_role(user_id)
 
@@ -68,8 +77,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     keyboard = [
-        [InlineKeyboardButton("🔍 Flow 2: Search Prospek & Cek ODP", callback_data="menu_flow2")],
-        [InlineKeyboardButton("📈 Flow 3: Analytics Bottleneck (>90%)", callback_data="menu_flow3")],
+        [InlineKeyboardButton("📍 Cari ODP Terdekat", callback_data="menu_flow1")],
+        [InlineKeyboardButton("🔍 Search Prospek & Cek ODP", callback_data="menu_flow2")],
+        [InlineKeyboardButton("📈 Analytics Bottleneck (>90%)", callback_data="menu_flow3")],
+        
         [InlineKeyboardButton("❓ Bantuan / Cara Penggunaan", callback_data="menu_help")]
     ]
 
