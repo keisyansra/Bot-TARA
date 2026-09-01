@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   db:
     image: postgis/postgis:16-3.4
@@ -43,6 +41,27 @@ services:
     volumes:
       - ./api:/app/api
       - ./etl:/app/etl
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bot_telkom_bot
+    restart: unless-stopped
+
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_started
+
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-botuser}:${DB_PASSWORD:-botpass}@db:5432/${DB_NAME:-bot_telkom}
+      FASTAPI_BASE_URL: http://api:8000
+      BOT_TOKEN: ${BOT_TOKEN}
+      ADMIN_ID: ${ADMIN_ID}
+
+    command: python bot/bot.py
 
 volumes:
   db_data:

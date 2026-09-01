@@ -40,7 +40,7 @@ async def send_prospect_page(context: ContextTypes.DEFAULT_TYPE, chat_id: int, p
 
     if not all_prospects:
         keyboard_back = [
-            [InlineKeyboardButton("🔙 Kembali ke Pilihan Flow 2", callback_data="menu_flow2")],
+            [InlineKeyboardButton("🔙 Kembali ke Pilihan Fitur 2", callback_data="menu_flow2")],
             [InlineKeyboardButton("🏠 Menu Utama", callback_data="menu_back_main")]
         ]
         nav_msg = await context.bot.send_message(
@@ -133,7 +133,7 @@ async def send_prospect_page(context: ContextTypes.DEFAULT_TYPE, chat_id: int, p
     if pagination_row:
         nav_buttons.append(pagination_row)
 
-    nav_buttons.append([InlineKeyboardButton("🔙 Kembali ke Pilihan Flow 2", callback_data="menu_flow2")])
+    nav_buttons.append([InlineKeyboardButton("🔙 Kembali ke Pilihan Fitur 2", callback_data="menu_flow2")])
     nav_buttons.append([InlineKeyboardButton("🏠 Menu Utama", callback_data="menu_back_main")])
 
     total_prospects = len(all_prospects)
@@ -180,7 +180,7 @@ async def handle_flow2_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
 
     text = (
-        "🔍 *FLOW 2: SEARCH PROSPEK & CEK ODP TERDEKAT*\n\n"
+        "🔍 *FITUR 2: CARI PROSPEK & CEK ODP TERDEKAT*\n\n"
         "Silakan pilih metode pencarian prospek/ODP yang ingin digunakan:"
     )
 
@@ -200,7 +200,7 @@ async def handle_flow2_options(update: Update, context: ContextTypes.DEFAULT_TYP
     query = update.callback_query
     await query.answer()
 
-    keyboard_back = [[InlineKeyboardButton("🔙 Kembali ke Pilihan Flow 2", callback_data="menu_flow2")]]
+    keyboard_back = [[InlineKeyboardButton("🔙 Kembali ke Pilihan Fitur 2", callback_data="menu_flow2")]]
 
     if query.data == "flow2_by_pt":
         context.user_data['search_mode'] = 'PT'
@@ -236,7 +236,7 @@ async def handle_flow2_options(update: Update, context: ContextTypes.DEFAULT_TYP
         if row: 
             keyboard_cities.append(row)
             
-        keyboard_cities.append([InlineKeyboardButton("🔙 Kembali ke Pilihan Flow 2", callback_data="menu_flow2")])
+        keyboard_cities.append([InlineKeyboardButton("🔙 Kembali ke Pilihan Fitur 2", callback_data="menu_flow2")])
 
         await query.message.edit_text(
             "📍 *Silakan pilih Kota/Wilayah dari daftar di bawah ini:*", 
@@ -247,7 +247,7 @@ async def handle_flow2_options(update: Update, context: ContextTypes.DEFAULT_TYP
     elif query.data == "flow2_by_location":
         location_keyboard_back = [[
             InlineKeyboardButton(
-                "⬅️ Kembali ke Pilihan Flow 2",
+                "⬅️ Kembali ke Pilihan Fitur 2",
                 callback_data="menu_flow2"
             )
         ]]
@@ -276,7 +276,7 @@ async def handle_city_button(update: Update, context: ContextTypes.DEFAULT_TYPE)
     user_id = update.effective_user.id
 
     keyboard_back = [
-        [InlineKeyboardButton("🔙 Kembali ke Pilihan Flow 2", callback_data="menu_flow2")],
+        [InlineKeyboardButton("🔙 Kembali ke Pilihan Fitur 2", callback_data="menu_flow2")],
         [InlineKeyboardButton("🏠 Menu Utama", callback_data="menu_back_main")]
     ]
 
@@ -331,7 +331,7 @@ async def handle_location_search(update: Update, context: ContextTypes.DEFAULT_T
     user_id = update.effective_user.id
 
     keyboard_back = [
-        [InlineKeyboardButton("🔙 Kembali ke Pilihan Flow 2", callback_data="menu_flow2")],
+        [InlineKeyboardButton("🔙 Kembali ke Pilihan Fitur 2", callback_data="menu_flow2")],
         [InlineKeyboardButton("🏠 Menu Utama", callback_data="menu_back_main")]
     ]
 
@@ -378,7 +378,7 @@ async def handle_prospect_text_search(update: Update, context: ContextTypes.DEFA
     user_id = update.effective_user.id
 
     keyboard_back = [
-        [InlineKeyboardButton("🔙 Kembali ke Pilihan Flow 2", callback_data="menu_flow2")],
+        [InlineKeyboardButton("🔙 Kembali ke Pilihan Fitur 2", callback_data="menu_flow2")],
         [InlineKeyboardButton("🏠 Menu Utama", callback_data="menu_back_main")]
     ]
 
@@ -496,7 +496,7 @@ async def handle_odp_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     keyboard_quick_nav = [
         [
-            InlineKeyboardButton("🔙 Cari Ulang Flow 2", callback_data="menu_flow2"),
+            InlineKeyboardButton("🔙 Cari Ulang Fitur 2", callback_data="menu_flow2"),
             InlineKeyboardButton("🏠 Menu Utama", callback_data="menu_back_main")
         ]
     ]
@@ -525,7 +525,7 @@ async def handle_reset_visited(update: Update, context: ContextTypes.DEFAULT_TYP
     )
     
     keyboard = [
-        [InlineKeyboardButton("🔍 Cari Prospek (Flow 2)", callback_data="menu_flow2")],
+        [InlineKeyboardButton("🔍 Cari Prospek (Fitur 2)", callback_data="menu_flow2")],
         [InlineKeyboardButton("🏠 Menu Utama", callback_data="menu_back_main")]
     ]
 
