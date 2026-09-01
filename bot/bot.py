@@ -1,7 +1,7 @@
 import logging
 import json
 
-from telegram import Update
+from telegram import BotCommand, Update
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -51,6 +51,19 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
+
+
+async def post_init(application: Application):
+    """Memaksa Telegram mengupdate daftar menu command otomatis."""
+    commands = [
+        BotCommand("start", "Membuka Menu Utama"),
+        BotCommand("reset", "Mereset daftar prospek"),
+        BotCommand("help", "Menampilkan panduan tutorial"),
+        BotCommand("acc", "(Admin) Cek request user baru"),
+        BotCommand("deluser", "(Admin) Hapus akses user"),
+    ]
+    await application.bot.set_my_commands(commands)
+    print("✅ Daftar command berhasil di-push ke Telegram!")
 
 
 # DISPATCHER UNTUK LOCATION 
@@ -111,7 +124,7 @@ def main():
         write_timeout=30.0
     )
 
-    app = Application.builder().token(BOT_TOKEN).build()
+    app = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
 
     # --- HANDLERS PERINTAH ---
     app.add_handler(CommandHandler("start", start_command))
