@@ -41,6 +41,7 @@ services:
     volumes:
       - ./api:/app/api
       - ./etl:/app/etl
+      - ./data:/app/data:ro
 
   bot:
     build:
