@@ -204,6 +204,7 @@ async def handle_flow2_options(update: Update, context: ContextTypes.DEFAULT_TYP
 
     if query.data == "flow2_by_pt":
         context.user_data['search_mode'] = 'PT'
+        context.user_data['flow2_searching_pt'] = True
         await query.message.edit_text(
             "🔎 *CARI NAMA PT/CV*\n\n"
             "Ketik nama PT atau CV yang ingin kamu cari.\n\n"
