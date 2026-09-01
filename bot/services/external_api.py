@@ -5,9 +5,6 @@ NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 
 
 def search_location(location_name: str):
-
-    url = "https://nominatim.openstreetmap.org/search"
-
     params = {
         "q": location_name,
         "format": "json",
@@ -21,7 +18,7 @@ def search_location(location_name: str):
 
     try:
         response = requests.get(
-            url,
+            NOMINATIM_URL,
             params=params,
             headers=headers,
             timeout=10

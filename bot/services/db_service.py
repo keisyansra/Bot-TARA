@@ -2,7 +2,7 @@ import requests
 
 # FASTAPI_BASE_URL = "http://192.168.1.13:8000"  #(WIFI INDEX)
 # FASTAPI_BASE_URL = "http://192.168.15.146:8000"  #(WIFI BGES)
-FASTAPI_BASE_URL = "https://kinetic-untried-whoops.ngrok-free.dev"
+from config import FASTAPI_BASE_URL
 
 def get_nearby_prospects_from_fastapi(lat: float, lon: float, limit: int = 20):
     """Menembak GET /api/prospects/nearby"""
