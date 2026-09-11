@@ -12,6 +12,20 @@ from etl.common.db import get_engine
 router = APIRouter()
 engine = get_engine()
 
+CATEGORY_PATTERNS = {
+    "all": None,
+    "company": ["pt", "cv", "ud"],
+    "food": ["restoran", "rumah makan", "kedai", "kafe", "warung"],
+    "retail": ["toko", "minimarket", "supermarket", "grosir", "pusat perbelanjaan"],
+    "hotel": ["hotel", "penginapan", "guest house"],
+    "education": ["sekolah", "kursus", "pendidikan", "belajar", "les privat"],
+    "health": ["rumah sakit", "klinik", "apotek"],
+    "automotive": ["bengkel", "dealer", "showroom", "suku cadang"],
+    "service": ["salon", "binatu", "laundry", "percetakan", "penjahit"],
+    "industry": ["pabrik", "gudang", "produsen", "workshop"],
+    "office": ["kantor", "perusahaan"],
+}
+
 
 @router.get("/nearby")
 def get_nearby_prospects(
@@ -73,6 +87,7 @@ def get_nearby_prospects(
 @router.get("/search")
 def search_prospects(
     query: str = Query(..., min_length=2, description="Kata kunci nama prospek"),
+    category: str | None = Query(None, description="Kategori usaha"),
     limit: int = Query(5, ge=1, le=20),
 ):
     """
@@ -82,18 +97,33 @@ def search_prospects(
     """
     sql = text("""
         SELECT
-            prospect_id, nama, alamat, wilayah, url_gmaps, latitude, longitude,
+            prospect_id, nama, alamat, wilayah, kategori, url_gmaps, latitude, longitude,
             customer_match_status, customer_match_score,
             nearest_odp_id, nearest_odp_name, nearest_odp_latitude, nearest_odp_longitude,
             odp_distance_m, odp_available_port, badge_status
         FROM gold.prospect_recommendation
         WHERE nama ILIKE :pattern
+            AND (
+                :category = 'all'
+                OR (
+                    :category = 'company'
+                    AND nama ~* '\m(PT|CV|UD)\M'
+                )
+                OR (
+                    :category != 'company'
+                    AND EXISTS (
+                        SELECT 1
+                        FROM unnest(:category_patterns) AS pattern
+                        WHERE kategori ILIKE '%' || pattern || '%'
+                )
+            )
+        )
         ORDER BY nama
         LIMIT :limit;
     """)
 
     with engine.connect() as conn:
-        rows = conn.execute(sql, {"pattern": f"%{query}%", "limit": limit}).mappings().all()
+        rows = conn.execute(sql, {"pattern": f"%{query}%", "category": category, "limit": limit}).mappings().all()
 
     formatted_data = []
     for r in rows:
@@ -103,6 +133,7 @@ def search_prospects(
                 "name": r["nama"],
                 "alamat": r["alamat"],
                 "wilayah": r["wilayah"],
+                "kategori": r["kategori"],
                 "url_gmaps": r["url_gmaps"],
                 "latitude": float(r["latitude"]) if r["latitude"] is not None else None,
                 "longitude": float(r["longitude"]) if r["longitude"] is not None else None,

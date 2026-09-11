@@ -21,7 +21,7 @@ def parse_coordinate_from_url(url):
     return None, None
 
 
-def cocok_kategori(nama, kategori_list=("PT", "CV", "UD")):
+def cocok_kategori(nama, kategori):
     """
     Cek apakah nama tempat beneran mengandung salah satu kata kunci
     badan usaha (PT/CV/UD) sebagai kata utuh -- nyaring hasil yang
@@ -32,8 +32,17 @@ def cocok_kategori(nama, kategori_list=("PT", "CV", "UD")):
     """
     if not nama:
         return False
-    pattern = r"\b(" + "|".join(re.escape(k) for k in kategori_list) + r")\b"
-    return bool(re.search(pattern, nama, re.IGNORECASE))
+    kategori_upper = kategori.upper()
+
+    #PT/CV/UD tetap menggunakan filter nama
+    if kategori_upper in ("PT", "CV", "UD"):
+        pattern = r"\b(" + re.escape(kategori_upper) + r")\b"
+        return bool(re.search(pattern, nama, re.IGNORECASE))
+
+    #kategori usaha umum tidak perlu mengandung keyword di nama 
+    return True
+    # pattern = r"\b(" + "|".join(re.escape(k) for k in kategori_list) + r")\b"
+    # return bool(re.search(pattern, nama, re.IGNORECASE))
 
 
 def parse_result_card(element_handle, kategori):
@@ -60,7 +69,7 @@ def parse_result_card(element_handle, kategori):
 
         # FILTER: skip di sini juga kalau namanya gak beneran PT/CV/UD --
         # sebelum buang waktu regex rating/telepon/alamat yang gak perlu.
-        if not cocok_kategori(nama):
+        if not cocok_kategori(nama, kategori): 
             return None
 
         inner_text = element_handle.inner_text()
@@ -72,6 +81,30 @@ def parse_result_card(element_handle, kategori):
         telepon = phone_match.group(1).strip() if phone_match else None
 
         lines = [line.strip() for line in inner_text.split('\n') if line.strip()]
+
+        kategori_maps = kategori
+
+        for line in lines: 
+            line_clean = line.strip().lower()
+
+            #Cari baris yang mengandung separator Google Maps 
+            if '·' in line_clean:
+                parts = [part.strip() for part in line_clean.split('·') if part.strip()]
+
+                if len(parts) >= 2:
+                    kandidat_kategori = parts[0]
+
+                    # Jangan ambil rating sebagai kategori
+                    if re.match(r"^\d[.,]\d", kandidat_kategori):
+                        continue
+
+                    # Jangan ambil nama bisnis
+                    if kandidat_kategori.lower() == nama.lower():
+                        continue
+
+                    kategori_maps = kandidat_kategori
+                    break
+
         alamat = None
         for i, line in enumerate(lines):
             if '·' in line:
@@ -88,7 +121,7 @@ def parse_result_card(element_handle, kategori):
 
         return {
             "nama": nama,
-            "kategori": kategori,
+            "kategori": kategori_maps,
             "alamat": alamat,
             "telepon": telepon,
             "rating": rating,
@@ -108,5 +141,5 @@ if __name__ == "__main__":
     print(f"Test 2 - lat: {lat}, lon: {lon}")
 
     # Test filter kategori
-    print(cocok_kategori("PT Maju Jaya Sentosa"))   # True
-    print(cocok_kategori("Warung Bu Siti"))          # False
+    print(cocok_kategori("PT Maju Jaya Sentosa", "PT"))   # True
+    print(cocok_kategori("Warung Bu Siti", "restoran"))   # True

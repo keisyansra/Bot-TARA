@@ -35,6 +35,8 @@ from handlers.flow1_handler import (
 from handlers.flow2_handler import (
     handle_flow2_menu,
     handle_flow2_options,
+    handle_flow2_category_menu,
+    handle_flow2_category,
     handle_prospect_text_search,
     handle_location_search,
     handle_odp_callback,
@@ -204,7 +206,14 @@ def main():
     app.add_handler(
         CallbackQueryHandler(
             handle_flow2_options,
-            pattern=r"^flow2_(by_pt|by_city|by_location)$"
+            pattern=r"^flow2_(by_pt|by_category|by_city|by_location)$"
+        )
+    )
+
+    app.add_handler(
+        CallbackQueryHandler(
+            handle_flow2_category,
+            pattern=r"^flow2_category_"
         )
     )
 

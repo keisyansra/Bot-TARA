@@ -10,19 +10,80 @@ REGIONS = [
     "Blitar",
     "Bojonegoro",
     "Kediri",
+    "Kepanjen",
+    "Kota Blitar",
+    "Kota Kediri",
+    "Kota Malang",
+    "Kota Madiun",
     "Madiun",
+    "Magetan",
     "Malang",
     "Nganjuk",
     "Ngawi",
+    "Pacitan",
     "Ponorogo",
+    "Trenggalek",
     "Tuban",
     "Tulungagung",
 ]
 
 CATEGORIES = [
+    # Bentuk badan usaha
     "PT",
     "CV",
     "UD",
+
+    # Makanan & minuman
+    "restoran",
+    "cafe",
+    "warung",
+    "rumah makan",
+    "kedai",
+
+    # Retail & perdagangan
+    "toko",
+    "minimarket",
+    "supermarket",
+    "grosir",
+    "distributor",
+
+    # Jasa
+    "bengkel",
+    "laundry",
+    "salon",
+    "barbershop",
+    "percetakan",
+    "konveksi",
+
+    # Akomodasi
+    "hotel",
+    "penginapan",
+    "guest house",
+
+    # Pendidikan
+    "sekolah",
+    "kursus",
+    "bimbingan belajar",
+
+    # Kesehatan
+    "klinik",
+    "apotek",
+    "rumah sakit",
+
+    # Industri
+    "pabrik",
+    "gudang",
+    "workshop",
+
+    # Otomotif
+    "dealer",
+    "showroom",
+    "toko sparepart",
+
+    # Perkantoran & usaha
+    "kantor",
+    "perusahaan",
+    "supplier",
 ]
 
 def main():

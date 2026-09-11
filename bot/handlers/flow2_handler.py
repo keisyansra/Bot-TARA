@@ -181,18 +181,37 @@ async def handle_flow2_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = (
         "🔍 *FITUR 2: CARI PROSPEK & CEK ODP TERDEKAT*\n\n"
-        "Silakan pilih metode pencarian prospek/ODP yang ingin digunakan:"
+        "Silakan pilih metode pencarian prospek yang ingin digunakan:"
     )
 
     keyboard = [
-        [InlineKeyboardButton("🏢 Cari Berdasarkan Nama PT/CV", callback_data="flow2_by_pt")],
-        [InlineKeyboardButton("🌆 Cari Berdasarkan Kota/Witel", callback_data="flow2_by_city")],
-        [InlineKeyboardButton("📍 Kirim Lokasi Saat Ini (GPS)", callback_data="flow2_by_location")],
-        [InlineKeyboardButton("🔙 Kembali ke Menu Utama", callback_data="menu_back_main")]
+        [InlineKeyboardButton(
+            "🏢 Cari Berdasarkan Nama Usaha",
+            callback_data="flow2_by_pt"
+        )],
+        [InlineKeyboardButton(
+            "🏷️ Cari Berdasarkan Jenis Usaha",
+            callback_data="flow2_by_category"
+        )],
+        [InlineKeyboardButton(
+            "🌆 Cari Berdasarkan Kota/Witel",
+            callback_data="flow2_by_city"
+        )],
+        [InlineKeyboardButton(
+            "📍 Kirim Lokasi Saat Ini (GPS)",
+            callback_data="flow2_by_location"
+        )],
+        [InlineKeyboardButton(
+            "🔙 Kembali ke Menu Utama",
+            callback_data="menu_back_main"
+        )]
     ]
 
-    await query.message.edit_text(text, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
-
+    await query.message.edit_text(
+        text,
+        parse_mode="Markdown",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 # flow utama (search pt cv)
 async def handle_flow2_options(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["active_flow"] = "flow2"
@@ -202,7 +221,10 @@ async def handle_flow2_options(update: Update, context: ContextTypes.DEFAULT_TYP
 
     keyboard_back = [[InlineKeyboardButton("🔙 Kembali ke Pilihan Fitur 2", callback_data="menu_flow2")]]
 
-    if query.data == "flow2_by_pt":
+    if query.data == "flow2_by_category":
+        await handle_flow2_category_menu(update, context)
+        return
+    elif query.data == "flow2_by_pt":
         context.user_data['search_mode'] = 'PT'
         context.user_data['flow2_searching_pt'] = True
         await query.message.edit_text(
@@ -265,6 +287,121 @@ async def handle_flow2_options(update: Update, context: ContextTypes.DEFAULT_TYP
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(location_keyboard_back)
         )
+
+async def handle_flow2_category_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["active_flow"] = "flow2"
+
+    query = update.callback_query
+    await query.answer()
+
+    keyboard = [
+        [InlineKeyboardButton(
+            "🔎 Semua Usaha",
+            callback_data="flow2_category_all"
+        )],
+        [InlineKeyboardButton(
+            "🏢 PT / CV / UD",
+            callback_data="flow2_category_company"
+        )],
+        [InlineKeyboardButton(
+            "🍜 Restoran & Kuliner",
+            callback_data="flow2_category_food"
+        )],
+        [InlineKeyboardButton(
+            "🛒 Toko & Retail",
+            callback_data="flow2_category_retail"
+        )],
+        [InlineKeyboardButton(
+            "🏨 Hotel & Penginapan",
+            callback_data="flow2_category_hotel"
+        )],
+        [InlineKeyboardButton(
+            "🎓 Pendidikan",
+            callback_data="flow2_category_education"
+        )],
+        [InlineKeyboardButton(
+            "🏥 Kesehatan",
+            callback_data="flow2_category_health"
+        )],
+        [InlineKeyboardButton(
+            "🔧 Bengkel & Otomotif",
+            callback_data="flow2_category_automotive"
+        )],
+        [InlineKeyboardButton(
+            "🧹 Jasa",
+            callback_data="flow2_category_service"
+        )],
+        [InlineKeyboardButton(
+            "🏭 Industri",
+            callback_data="flow2_category_industry"
+        )],
+        [InlineKeyboardButton(
+            "🏢 Kantor / Perusahaan",
+            callback_data="flow2_category_office"
+        )],
+        [InlineKeyboardButton(
+            "🔙 Kembali ke Pilihan Fitur 2",
+            callback_data="menu_flow2"
+        )]
+    ]
+
+    await query.message.edit_text(
+        "🏷️ *PILIH JENIS USAHA*\n\n"
+        "Silakan pilih jenis usaha yang ingin dicari:",
+        parse_mode="Markdown",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+async def handle_flow2_category(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handler saat user memilih kategori jenis usaha."""
+
+    query = update.callback_query
+    await query.answer()
+
+    category_map = {
+        "flow2_category_all": "Semua Usaha",
+        "flow2_category_company": "PT / CV / UD",
+        "flow2_category_food": "Restoran & Kuliner",
+        "flow2_category_retail": "Toko & Retail",
+        "flow2_category_hotel": "Hotel & Penginapan",
+        "flow2_category_education": "Pendidikan",
+        "flow2_category_health": "Kesehatan",
+        "flow2_category_automotive": "Bengkel & Otomotif",
+        "flow2_category_service": "Jasa",
+        "flow2_category_industry": "Industri",
+        "flow2_category_office": "Kantor / Perusahaan",
+    }
+
+    selected_category = category_map.get(query.data)
+
+    if not selected_category:
+        await query.message.reply_text(
+            "⚠️ Kategori tidak dikenali."
+        )
+        return
+
+    # Simpan kategori yang dipilih ke session user
+    context.user_data["flow2_category"] = selected_category
+
+    await query.message.edit_text(
+        f"🏷️ <b>Kategori dipilih:</b> {html.escape(selected_category)}\n\n"
+        "🔍 Selanjutnya bot akan mencari prospek berdasarkan kategori ini.",
+        parse_mode="HTML",
+        reply_markup=InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton(
+                    "🔙 Kembali Pilih Jenis Usaha",
+                    callback_data="flow2_by_category"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "🔙 Kembali ke Pilihan Fitur 2",
+                    callback_data="menu_flow2"
+                )
+            ]
+        ])
+    )
 
 async def handle_city_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handler ketika salah satu tombol kota diklik"""
