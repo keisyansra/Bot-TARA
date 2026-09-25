@@ -39,12 +39,12 @@ ASSET_DIR = (
 
 BACKGROUND_PATH = (
     ASSET_DIR
-    / "login_bg.jpg"
+    / "BG_Login.jpg"
 )
 
-TELKOM_LOGO_PATH = (
+LOGO_PATH = (
     ASSET_DIR
-    / "telkom_logo.png"
+    / "logo_tara.png"
 )
 
 
@@ -52,14 +52,13 @@ TELKOM_LOGO_PATH = (
 # IMAGE HELPER
 # ============================================================
 
-def image_to_data_uri(
-    path: Path,
-):
+def image_to_data_uri(path: Path):
 
     if not path.exists():
         return None
 
     try:
+
         encoded = (
             base64.b64encode(
                 path.read_bytes()
@@ -96,15 +95,15 @@ background_uri = (
     )
 )
 
-telkom_logo_uri = (
+logo_uri = (
     image_to_data_uri(
-        TELKOM_LOGO_PATH
+        LOGO_PATH
     )
 )
 
 
 # ============================================================
-# BACKGROUND
+# BACKGROUND HERO
 # ============================================================
 
 if background_uri:
@@ -112,8 +111,8 @@ if background_uri:
     HERO_BG = (
         "linear-gradient("
         "135deg,"
-        "rgba(182,29,31,0.80),"
-        "rgba(224,64,42,0.75)"
+        "rgba(181,24,30,0.42),"
+        "rgba(219,54,43,0.34)"
         "),"
         f"url('{background_uri}')"
     )
@@ -130,14 +129,50 @@ else:
 
 
 # ============================================================
+# LOGO HTML
+# ============================================================
+
+if logo_uri:
+
+    BRAND_HTML = f"""
+    <div class="tara-brand-image-wrap">
+
+        <img
+            src="{logo_uri}"
+            class="tara-brand-image"
+            alt="TARA Logo"
+        >
+
+    </div>
+    """
+
+else:
+
+    BRAND_HTML = """
+    <div class="tara-brand-fallback">
+
+        <div class="tara-brand-fallback-title">
+            TARA
+        </div>
+
+        <div class="tara-brand-fallback-subtitle">
+            Telkom Area Recommendation Assistant
+        </div>
+
+    </div>
+    """
+
+
+# ============================================================
 # CSS
 # ============================================================
 
 CSS = """
 <style>
 
+
 /* ==========================================================
-   HIDE DEFAULT STREAMLIT UI
+   HIDE DEFAULT STREAMLIT
    ========================================================== */
 
 [data-testid="stSidebar"] {
@@ -157,16 +192,16 @@ header[data-testid="stHeader"] {
 }
 
 #MainMenu {
-    visibility: hidden;
+    visibility: hidden !important;
 }
 
 footer {
-    visibility: hidden;
+    visibility: hidden !important;
 }
 
 
 /* ==========================================================
-   APP
+   APP BACKGROUND
    ========================================================== */
 
 html,
@@ -176,520 +211,313 @@ body,
 }
 
 [data-testid="stAppViewContainer"] {
-
     background:
-
         radial-gradient(
             circle at 2% 5%,
-            rgba(218, 38, 43, 0.07),
-            transparent 30%
+            rgba(218,38,43,0.055),
+            transparent 28%
         ),
-
         radial-gradient(
-            circle at 97% 95%,
-            rgba(235, 91, 63, 0.08),
-            transparent 25%
+            circle at 98% 95%,
+            rgba(235,91,63,0.055),
+            transparent 24%
         ),
-
         #F7F8FC !important;
 }
 
 .block-container {
+    max-width: 1500px !important;
 
-    max-width: 1510px !important;
+    padding-top: 1.4rem !important;
+    padding-bottom: 1rem !important;
 
-    padding-top: 2.9rem !important;
-
-    padding-bottom: 1.5rem !important;
-
-    padding-left: 2.8rem !important;
-
-    padding-right: 2.8rem !important;
+    padding-left: 1.8rem !important;
+    padding-right: 1.8rem !important;
 }
 
 
 /* ==========================================================
-   MAIN HERO
+   LEFT HERO
    ========================================================== */
 
 .tara-hero {
+    position: relative;
 
     min-height: 690px;
 
-    border-radius: 28px 0 0 28px;
-
-    padding: 48px 52px;
-
-    position: relative;
-
     overflow: hidden;
+
+    box-sizing: border-box;
+
+    border-radius:
+        28px
+        0
+        0
+        28px;
+
+    padding:
+        50px
+        52px
+        40px
+        52px;
 
     color: #FFFFFF;
 
-    background-image: __HERO_BG__;
+    background-image:
+        __HERO_BG__;
 
     background-size: cover;
 
-    background-position: center;
+    background-position:
+        center center;
+
+    box-shadow:
+        0 22px 55px
+        rgba(34,38,48,0.12);
 
     display: flex;
 
     flex-direction: column;
 
     justify-content: space-between;
-
-    box-shadow:
-        0 24px 55px
-        rgba(71, 34, 35, 0.14);
 }
 
 
-/* overlay decorative rings */
+/* dekorasi kiri atas */
 
 .tara-hero::before {
-
     content: "";
 
     position: absolute;
 
-    width: 420px;
+    width: 190px;
+    height: 190px;
 
-    height: 420px;
-
-    right: -205px;
-
-    bottom: -205px;
-
-    border-radius: 50%;
-
-    border:
-        56px solid
-        rgba(255, 255, 255, 0.08);
-
-    pointer-events: none;
-}
-
-
-.tara-hero::after {
-
-    content: "";
-
-    position: absolute;
-
-    width: 235px;
-
-    height: 235px;
-
-    left: -125px;
-
-    top: -120px;
+    left: -95px;
+    top: -95px;
 
     border-radius: 50%;
 
     background:
-        rgba(255, 255, 255, 0.06);
+        rgba(255,255,255,0.055);
+
+    pointer-events: none;
+}
+
+
+/* dekorasi kanan bawah */
+
+.tara-hero::after {
+    content: "";
+
+    position: absolute;
+
+    width: 330px;
+    height: 330px;
+
+    right: -165px;
+    bottom: -165px;
+
+    border-radius: 50%;
+
+    border:
+        46px solid
+        rgba(255,255,255,0.075);
 
     pointer-events: none;
 }
 
 
 /* ==========================================================
-   TELKOM BRAND
-   ========================================================== */
-
-.hero-logo-wrap {
-
-    position: relative;
-
-    z-index: 2;
-
-    min-height: 70px;
-
-    display: flex;
-
-    align-items: center;
-}
-
-
-.hero-logo-image {
-
-    max-width: 190px;
-
-    max-height: 70px;
-
-    object-fit: contain;
-
-    filter:
-        brightness(0)
-        invert(1);
-}
-
-
-.hero-company-fallback {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-    font-size: 1rem;
-
-    font-weight: 750;
-
-    letter-spacing: 0.035em;
-}
-
-
-.hero-company-symbol {
-
-    position: relative;
-
-    width: 42px;
-
-    height: 34px;
-}
-
-
-.hero-company-symbol span {
-
-    position: absolute;
-
-    width: 13px;
-
-    height: 13px;
-
-    border-radius: 50%;
-
-    background: #FFFFFF;
-}
-
-
-.hero-company-symbol span:nth-child(1) {
-
-    top: 0;
-
-    left: 14px;
-}
-
-
-.hero-company-symbol span:nth-child(2) {
-
-    bottom: 0;
-
-    left: 0;
-}
-
-
-.hero-company-symbol span:nth-child(3) {
-
-    bottom: 0;
-
-    right: 0;
-}
-
-
-/* ==========================================================
-   HERO TEXT
+   HERO CONTENT
    ========================================================== */
 
 .hero-content {
-
     position: relative;
 
     z-index: 2;
 
-    max-width: 690px;
-
-    margin-bottom: 15px;
+    max-width: 620px;
 }
-
 
 .hero-title {
-
     margin: 0;
 
-    font-size: 3.35rem;
+    color: #FFFFFF;
 
-    line-height: 1.05;
+    font-size: 3.45rem;
 
-    font-weight: 760;
+    line-height: 1.04;
 
-    letter-spacing: -0.025em;
+    font-weight: 820;
+
+    letter-spacing: -0.04em;
 }
 
-
 .hero-subtitle {
+    margin-top: 11px;
 
-    margin-top: 9px;
+    color:
+        rgba(255,255,255,0.97);
 
-    font-size: 1.24rem;
+    font-size: 1.12rem;
 
-    font-weight: 600;
+    font-weight: 620;
 
     font-style: italic;
 
-    opacity: 0.97;
+    line-height: 1.4;
 }
 
-
 .hero-accent {
-
     width: 62px;
-
     height: 4px;
 
     margin-top: 22px;
 
-    margin-bottom: 21px;
-
     border-radius: 999px;
 
-    background: #FFFFFF;
-}
-
-
-.hero-description {
-
-    max-width: 630px;
-
-    font-size: 1rem;
-
-    line-height: 1.68;
-
-    opacity: 0.96;
-}
-
-
-/* ==========================================================
-   HERO FEATURES
-   ========================================================== */
-
-.hero-features {
-
-    margin-top: 30px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 22px;
-
-    flex-wrap: wrap;
-}
-
-
-.hero-feature {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 11px;
-
-    color: #FFFFFF;
-
-    font-size: 0.76rem;
-
-    line-height: 1.35;
-
-    font-weight: 600;
-}
-
-
-.hero-feature-icon {
-
-    width: 34px;
-
-    height: 34px;
-
-    border-radius: 9px;
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    border:
-        1px solid
-        rgba(255,255,255,.32);
-
     background:
-        rgba(255,255,255,.08);
-
-    font-size: 1rem;
+        rgba(255,255,255,0.95);
 }
-
-
-.hero-feature-divider {
-
-    width: 1px;
-
-    height: 32px;
-
-    background:
-        rgba(255,255,255,.35);
-}
-
 
 .hero-bottom {
-
     position: relative;
 
     z-index: 2;
 
     color:
-        rgba(
-            255,
-            255,
-            255,
-            0.72
-        );
+        rgba(255,255,255,0.78);
 
-    font-size: .70rem;
+    font-size: 0.68rem;
 }
 
 
 /* ==========================================================
-   LOGIN CARD STREAMLIT CONTAINER
+   LOGIN CARD
    ========================================================== */
 
 .st-key-tara_login_card {
-
     position: relative;
 
-    z-index: 6;
+    z-index: 5;
 
-    margin-left: -35px;
+    margin-left: -18px;
 
     min-height: 690px;
+
+    box-sizing: border-box;
+
+    padding:
+        28px
+        56px
+        32px
+        56px;
 
     background: #FFFFFF;
 
     border:
         1px solid
-        rgba(
-            227,
-            230,
-            236,
-            .90
-        );
+        #E5E8EE;
 
-    border-radius: 0 28px 28px 0;
+    border-radius:
+        0
+        28px
+        28px
+        0;
 
     box-shadow:
-        0 24px 60px
-        rgba(
-            45,
-            49,
-            59,
-            .11
-        );
-
-    padding:
-        48px
-        56px
-        38px
-        56px;
+        0 22px 55px
+        rgba(34,38,48,0.10);
 }
 
 
 .st-key-tara_login_card
 [data-testid="stVerticalBlock"] {
-
-    gap: 0.7rem;
+    gap: 0.60rem;
 }
 
 
 /* ==========================================================
-   TARA BRAND RIGHT
+   TARA LOGO
    ========================================================== */
 
-.tara-brand {
+.tara-brand-image-wrap {
+    position: relative;
+
+    width: 100%;
+
+    height: 108px;
+
+    margin:
+        0
+        0
+        0
+        0;
+
+    padding: 0;
+
+    overflow: hidden;
 
     display: flex;
 
     align-items: center;
 
-    gap: 15px;
-
-    margin-bottom: 37px;
+    justify-content: flex-start;
 }
 
 
-.tara-symbol {
+.tara-brand-image {
+    display: block;
 
-    position: relative;
+    width: 260px;
 
-    width: 61px;
+    max-width: none;
 
-    height: 48px;
-}
+    height: auto;
 
+    object-fit: contain;
 
-.tara-symbol span {
+    object-position:
+        left center;
 
-    position: absolute;
-
-    width: 19px;
-
-    height: 19px;
-
-    border-radius: 50%;
-
-    background:
-        linear-gradient(
-            135deg,
-            #F04A32,
-            #C7181E
+    transform:
+        translate(
+            -8px,
+            0px
         );
+
+    transform-origin:
+        left center;
 }
 
 
-.tara-symbol span:nth-child(1) {
+/* fallback */
 
-    left: 20px;
-
-    top: 0;
+.tara-brand-fallback {
+    margin:
+        12px
+        0
+        12px
+        0;
 }
 
+.tara-brand-fallback-title {
+    color: #172033;
 
-.tara-symbol span:nth-child(2) {
-
-    left: 0;
-
-    bottom: 2px;
-}
-
-
-.tara-symbol span:nth-child(3) {
-
-    right: 0;
-
-    bottom: 2px;
-}
-
-
-.tara-brand-name {
-
-    color: #202632;
-
-    font-size: 2.05rem;
+    font-size: 1.9rem;
 
     line-height: 1;
 
-    font-weight: 820;
+    font-weight: 830;
 }
 
-
-.tara-brand-caption {
-
+.tara-brand-fallback-subtitle {
     margin-top: 5px;
 
-    color: #939AA6;
+    color: #949EAC;
 
-    font-size: .72rem;
+    font-size: 0.70rem;
 }
 
 
@@ -698,116 +526,298 @@ body,
    ========================================================== */
 
 .login-heading {
+    margin-top: -3px;
 
-    color: #202632;
+    margin-bottom: 0;
 
-    font-size: 2rem;
+    color: #172033;
 
-    font-weight: 760;
+    font-size: 1.95rem;
 
-    letter-spacing: -0.015em;
+    font-weight: 800;
 
-    line-height: 1.2;
+    line-height: 1.18;
+
+    letter-spacing:
+        -0.025em;
 }
 
 
 .login-description {
+    margin-top: 6px;
 
-    margin-top: 8px;
+    margin-bottom: 16px;
 
-    margin-bottom: 25px;
+    color: #858F9E;
 
-    color: #818A97;
+    font-size: 0.85rem;
 
-    font-size: .91rem;
-
-    line-height: 1.5;
+    line-height: 1.55;
 }
 
 
 /* ==========================================================
-   FORM LABEL
+   LOGIN INPUT
    ========================================================== */
 
-.st-key-tara_login_card
-label[data-testid="stWidgetLabel"] p {
+.st-key-tara_username_input,
+.st-key-tara_password_input {
+    position: relative !important;
 
-    color: #5B6370 !important;
+    min-height: 52px !important;
 
-    font-size: .78rem !important;
+    background:
+        #FFFFFF !important;
 
-    font-weight: 620 !important;
+    border:
+        1.4px solid
+        #D9DEE8 !important;
+
+    border-radius:
+        12px !important;
+
+    box-sizing:
+        border-box !important;
+
+    overflow:
+        hidden !important;
+
+    box-shadow:
+        0 1px 2px
+        rgba(15,23,42,0.025)
+        !important;
+
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease
+        !important;
 }
 
 
-/* ==========================================================
-   INPUTS
-   ========================================================== */
+/* hover */
 
-.st-key-tara_login_card
-div[data-baseweb="input"] {
-
-    min-height: 48px !important;
-
-    background: #FFFFFF !important;
-
-    border:
-        1px solid
-        #D8DDE6 !important;
-
-    border-radius: 10px !important;
-
-    box-shadow: none !important;
+.st-key-tara_username_input:hover,
+.st-key-tara_password_input:hover {
+    border-color:
+        #C7CED8 !important;
 }
 
 
-.st-key-tara_login_card
-div[data-baseweb="input"]:focus-within {
+/* focus */
 
-    border:
-        1px solid
+.st-key-tara_username_input:focus-within,
+.st-key-tara_password_input:focus-within {
+    border-color:
         #D6272A !important;
 
     box-shadow:
         0 0 0 3px
-        rgba(
-            214,
-            39,
-            42,
-            .07
-        ) !important;
+        rgba(214,39,42,0.08)
+        !important;
 }
 
 
-.st-key-tara_login_card
-div[data-baseweb="input"]
-input {
+/* hapus border internal Streamlit */
 
-    color: #252B36 !important;
+.st-key-tara_username_input
+div[data-baseweb="input"],
+
+.st-key-tara_password_input
+div[data-baseweb="input"],
+
+.st-key-tara_username_input
+div[data-baseweb="base-input"],
+
+.st-key-tara_password_input
+div[data-baseweb="base-input"],
+
+.st-key-tara_username_input
+[data-testid="stTextInputRootElement"],
+
+.st-key-tara_password_input
+[data-testid="stTextInputRootElement"] {
+
+    border:
+        none !important;
+
+    outline:
+        none !important;
+
+    box-shadow:
+        none !important;
 
     background:
         transparent !important;
 
-    font-size: .88rem !important;
+    border-radius:
+        12px !important;
 }
 
 
-.st-key-tara_login_card
-div[data-baseweb="input"]
-input::placeholder {
+/* text input */
 
-    color: #A0A7B2 !important;
+.st-key-tara_username_input input,
+.st-key-tara_password_input input {
+    min-height:
+        50px !important;
 
-    opacity: 1 !important;
+    width:
+        100% !important;
+
+    background:
+        transparent !important;
+
+    border:
+        none !important;
+
+    outline:
+        none !important;
+
+    box-shadow:
+        none !important;
+
+    color:
+        #29313D !important;
+
+    font-size:
+        0.86rem !important;
+
+    padding-top:
+        0 !important;
+
+    padding-bottom:
+        0 !important;
 }
 
 
-/* eye icon */
+/* placeholder */
 
-.st-key-tara_login_card
-div[data-baseweb="input"] svg {
+.st-key-tara_username_input input::placeholder,
+.st-key-tara_password_input input::placeholder {
+    color:
+        #8F98A6 !important;
 
-    fill: #8F98A6 !important;
+    opacity:
+        1 !important;
+}
+
+
+/* ==========================================================
+   USERNAME ICON
+   ========================================================== */
+
+.st-key-tara_username_input::before {
+    content: "";
+
+    position: absolute;
+
+    z-index: 10;
+
+    left: 15px;
+
+    top: 50%;
+
+    transform:
+        translateY(-50%);
+
+    width: 18px;
+
+    height: 18px;
+
+    pointer-events: none;
+
+    background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238F98A6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E");
+
+    background-repeat:
+        no-repeat;
+
+    background-position:
+        center;
+
+    background-size:
+        contain;
+}
+
+
+.st-key-tara_username_input input {
+    padding-left:
+        43px !important;
+}
+
+
+/* ==========================================================
+   PASSWORD ICON
+   ========================================================== */
+
+.st-key-tara_password_input::before {
+    content: "";
+
+    position: absolute;
+
+    z-index: 10;
+
+    left: 15px;
+
+    top: 50%;
+
+    transform:
+        translateY(-50%);
+
+    width: 18px;
+
+    height: 18px;
+
+    pointer-events: none;
+
+    background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238F98A6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='11' width='18' height='11' rx='2' ry='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E");
+
+    background-repeat:
+        no-repeat;
+
+    background-position:
+        center;
+
+    background-size:
+        contain;
+}
+
+
+.st-key-tara_password_input input {
+    padding-left:
+        43px !important;
+
+    padding-right:
+        44px !important;
+}
+
+
+/* ==========================================================
+   PASSWORD EYE
+   ========================================================== */
+
+.st-key-tara_password_input button {
+    border:
+        none !important;
+
+    outline:
+        none !important;
+
+    background:
+        transparent !important;
+
+    box-shadow:
+        none !important;
+
+    color:
+        #8F98A6 !important;
+}
+
+
+.st-key-tara_password_input button:hover {
+    background:
+        transparent !important;
 }
 
 
@@ -817,105 +827,128 @@ div[data-baseweb="input"] svg {
 
 .st-key-tara_login_card
 [data-testid="stCheckbox"] {
+    margin-top:
+        -1px;
 
-    margin-top: -2px;
-
-    margin-bottom: 5px;
+    margin-bottom:
+        2px;
 }
 
 
 .st-key-tara_login_card
 [data-testid="stCheckbox"]
 label {
+    color:
+        #59616D !important;
 
-    color: #59616D !important;
-
-    font-size: .78rem !important;
+    font-size:
+        0.77rem !important;
 }
 
 
 /* ==========================================================
-   INFO BOX
+   ADMIN NOTE
    ========================================================== */
 
 .admin-note {
-
     display: flex;
 
-    align-items: flex-start;
+    align-items:
+        flex-start;
 
-    gap: 11px;
+    gap:
+        10px;
 
     padding:
         12px
         14px;
 
     margin:
-        5px 0
-        5px 0;
+        4px
+        0
+        3px
+        0;
 
     border:
         1px solid
-        #F3D5D7;
+        #F2D0D3;
 
-    border-radius: 9px;
+    border-radius:
+        10px;
 
-    background: #FFF1F2;
+    background:
+        #FFF4F5;
 
-    color: #734548;
+    color:
+        #754A4E;
 
-    font-size: .75rem;
+    font-size:
+        0.71rem;
 
-    line-height: 1.45;
+    line-height:
+        1.5;
 }
 
 
 .admin-note-icon {
+    flex-shrink:
+        0;
 
-    font-size: 1.1rem;
+    font-size:
+        1rem;
 }
 
 
 /* ==========================================================
-   BUTTON
+   LOGIN BUTTON
    ========================================================== */
 
 .st-key-tara_login_card
-button[kind="primaryFormSubmit"] {
+button[kind^="primary"] {
+    min-height:
+        49px !important;
 
-    min-height: 48px !important;
-
-    width: 100% !important;
+    width:
+        100% !important;
 
     border:
         1px solid
         #D6272A !important;
 
-    border-radius: 9px !important;
+    border-radius:
+        10px !important;
 
     background:
         linear-gradient(
             90deg,
             #D22027,
             #E42F33
-        ) !important;
+        )
+        !important;
 
-    color: #FFFFFF !important;
+    color:
+        #FFFFFF !important;
 
-    font-size: .92rem !important;
+    font-size:
+        0.87rem !important;
 
-    font-weight: 700 !important;
+    font-weight:
+        700 !important;
+
+    box-shadow:
+        0 8px 18px
+        rgba(210,32,39,0.14)
+        !important;
 }
 
 
 .st-key-tara_login_card
-button[kind="primaryFormSubmit"]:hover {
-
+button[kind^="primary"]:hover {
     background:
-        #B61D23 !important;
+        #B91C23 !important;
 
     border-color:
-        #B61D23 !important;
+        #B91C23 !important;
 }
 
 
@@ -924,48 +957,72 @@ button[kind="primaryFormSubmit"]:hover {
    ========================================================== */
 
 .internal-note {
+    margin-top:
+        14px;
 
-    margin-top: 20px;
-
-    padding-top: 17px;
+    padding-top:
+        14px;
 
     border-top:
         1px solid
-        #E9EBEF;
+        #E9ECF0;
 
-    text-align: center;
+    text-align:
+        center;
 
-    color: #9AA1AC;
+    color:
+        #9AA3AF;
 
-    font-size: .69rem;
+    font-size:
+        0.66rem;
 }
 
 
 /* ==========================================================
-   BOTTOM FOOTER
+   ERROR
+   ========================================================== */
+
+.st-key-tara_login_card
+[data-testid="stAlert"] {
+    border-radius:
+        10px !important;
+
+    font-size:
+        0.78rem !important;
+}
+
+
+/* ==========================================================
+   FOOTER
    ========================================================== */
 
 .page-footer {
+    display:
+        flex;
 
-    display: flex;
+    justify-content:
+        space-between;
 
-    justify-content: space-between;
+    align-items:
+        center;
 
-    align-items: center;
+    padding-top:
+        14px;
 
-    padding-top: 18px;
+    color:
+        #A0A8B3;
 
-    color: #A0A6B0;
-
-    font-size: .65rem;
+    font-size:
+        0.62rem;
 }
 
 
 .footer-links {
+    display:
+        flex;
 
-    display: flex;
-
-    gap: 20px;
+    gap:
+        19px;
 }
 
 
@@ -976,43 +1033,65 @@ button[kind="primaryFormSubmit"]:hover {
 @media(max-width: 1000px) {
 
     .tara-hero {
+        min-height:
+            450px;
 
         border-radius:
             24px;
 
-        min-height:
-            520px;
-    }
-
-
-    .st-key-tara_login_card {
-
-        margin-left: 0;
-
-        border-radius:
-            24px;
-
-        min-height:
-            auto;
+        padding:
+            36px
+            32px;
     }
 
 
     .hero-title {
-
         font-size:
-            2.4rem;
+            2.6rem;
+    }
+
+
+    .st-key-tara_login_card {
+        margin-left:
+            0;
+
+        min-height:
+            auto;
+
+        border-radius:
+            24px;
+
+        padding:
+            30px
+            32px;
+    }
+
+
+    .tara-brand-image-wrap {
+        height:
+            95px;
+    }
+
+
+    .tara-brand-image {
+        width:
+            235px;
+
+        transform:
+            translate(
+                -6px,
+                0px
+            );
     }
 
 
     .page-footer {
-
         flex-direction:
             column;
 
         gap:
             8px;
     }
-
 }
 
 </style>
@@ -1024,13 +1103,14 @@ CSS = CSS.replace(
     HERO_BG,
 )
 
+
 st.html(
     CSS
 )
 
 
 # ============================================================
-# LOGGED IN
+# REDIRECT IF LOGGED IN
 # ============================================================
 
 if is_logged_in():
@@ -1057,150 +1137,41 @@ left, right = st.columns(
 
 
 # ============================================================
-# LEFT PANEL
+# LEFT HERO
 # ============================================================
 
 with left:
 
-    if telkom_logo_uri:
+    st.html(
+        """
+        <div class="tara-hero">
 
-        brand_html = (
-            '<img '
-            'class="hero-logo-image" '
-            f'src="{telkom_logo_uri}">'
-        )
+            <div class="hero-content">
 
-    else:
+                <div class="hero-title">
+                    TARA Dashboard
+                </div>
 
-        brand_html = """
-        <div class="hero-company-fallback">
+                <div class="hero-subtitle">
+                    Telkom Area Recommendation Assistant
+                </div>
 
-            <div class="hero-company-symbol">
-
-                <span></span>
-                <span></span>
-                <span></span>
+                <div class="hero-accent">
+                </div>
 
             </div>
 
-            <span>
-                TELKOM INDONESIA
-            </span>
+            <div class="hero-bottom">
+                Internal Administrative System
+            </div>
 
         </div>
         """
-
-    HERO_HTML = f"""
-    <div class="tara-hero">
-
-        <div class="hero-logo-wrap">
-
-            {brand_html}
-
-        </div>
-
-
-        <div class="hero-content">
-
-            <div class="hero-title">
-                TARA Dashboard
-            </div>
-
-            <div class="hero-subtitle">
-
-                Telkom Area Recommendation Assistant
-
-            </div>
-
-
-            <div class="hero-accent">
-            </div>
-
-
-            <div class="hero-description">
-
-                Platform administrasi untuk
-                pengelolaan data CBASE, ODP,
-                prospek, dan aktivitas secara
-                terintegrasi.
-
-            </div>
-
-
-            <div class="hero-features">
-
-
-                <div class="hero-feature">
-
-                    <div class="hero-feature-icon">
-                        🗄️
-                    </div>
-
-                    <div>
-                        Data<br>
-                        Terintegrasi
-                    </div>
-
-                </div>
-
-
-                <div class="hero-feature-divider">
-                </div>
-
-
-                <div class="hero-feature">
-
-                    <div class="hero-feature-icon">
-                        📊
-                    </div>
-
-                    <div>
-                        Pengelolaan<br>
-                        Berbasis Data
-                    </div>
-
-                </div>
-
-
-                <div class="hero-feature-divider">
-                </div>
-
-
-                <div class="hero-feature">
-
-                    <div class="hero-feature-icon">
-                        👥
-                    </div>
-
-                    <div>
-                        Mendukung<br>
-                        Kolaborasi Tim
-                    </div>
-
-                </div>
-
-
-            </div>
-
-        </div>
-
-
-        <div class="hero-bottom">
-
-            Internal Administrative System
-
-        </div>
-
-    </div>
-    """
-
-    st.html(
-        HERO_HTML
     )
 
 
 # ============================================================
-# RIGHT CARD
+# RIGHT LOGIN CARD
 # ============================================================
 
 with right:
@@ -1209,128 +1180,119 @@ with right:
         key="tara_login_card",
     ):
 
+
+        # ====================================================
+        # LOGO
+        # ====================================================
+
+        st.html(
+            BRAND_HTML
+        )
+
+
+        # ====================================================
+        # TITLE
+        # ====================================================
+
         st.html(
             """
-            <div class="tara-brand">
-
-                <div class="tara-symbol">
-
-                    <span></span>
-                    <span></span>
-                    <span></span>
-
-                </div>
-
-
-                <div>
-
-                    <div class="tara-brand-name">
-                        TARA
-                    </div>
-
-                    <div class="tara-brand-caption">
-
-                        Telkom Area Recommendation Assistant
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
             <div class="login-heading">
-
                 Masuk ke Dashboard TARA
-
             </div>
-
 
             <div class="login-description">
-
-                Silakan masuk menggunakan
-                akun administrator.
-
+                Silakan masuk menggunakan akun administrator.
             </div>
             """
         )
 
 
         # ====================================================
-        # FORM
+        # PASSWORD VISIBILITY
         # ====================================================
 
-        with st.form(
-            "tara_login_form",
-            clear_on_submit=False,
-        ):
-
-            admin_name = (
-                st.text_input(
-                    "Nama Admin",
-                    placeholder=(
-                        "Masukkan nama admin"
-                    ),
-                )
+        show_code = (
+            st.session_state.get(
+                "show_login_code",
+                False,
             )
+        )
 
 
-            access_code = (
-                st.text_input(
-                    "Kode Akses",
-                    type="password",
-                    placeholder=(
-                        "Masukkan kode akses"
-                    ),
-                )
-            )
+        # ====================================================
+        # USERNAME
+        # ====================================================
+
+        admin_name = st.text_input(
+            "Username",
+            placeholder="Username",
+            label_visibility="collapsed",
+            autocomplete="username",
+            key="tara_username_input",
+        )
 
 
-            show_code = (
-                st.checkbox(
-                    "Tampilkan kode akses",
-                    key="show_login_code",
-                )
-            )
+        # ====================================================
+        # PASSWORD
+        # ====================================================
+
+        access_code = st.text_input(
+            "Kata Sandi",
+            type=(
+                "default"
+                if show_code
+                else "password"
+            ),
+            placeholder="Kata Sandi",
+            label_visibility="collapsed",
+            autocomplete="current-password",
+            key="tara_password_input",
+        )
 
 
-            # Streamlit tidak bisa mengubah type
-            # text_input yang sudah dibuat dalam form
-            # setelah checkbox diklik.
-            # Kita handle rerun di bawah.
+        # ====================================================
+        # SHOW PASSWORD
+        # ====================================================
+
+        st.checkbox(
+            "Tampilkan kata sandi",
+            key="show_login_code",
+        )
 
 
-            st.html(
-                """
-                <div class="admin-note">
+        # ====================================================
+        # ADMIN NOTE
+        # ====================================================
 
-                    <div class="admin-note-icon">
-                        👥
-                    </div>
+        st.html(
+            """
+            <div class="admin-note">
 
-                    <div>
-
-                        Setiap administrator menggunakan
-                        akun masing-masing dan dapat bekerja
-                        secara bersamaan.
-
-                    </div>
-
+                <div class="admin-note-icon">
                 </div>
-                """
-            )
+                <div>
+                    Gunakan akun administrator yang telah terdaftar
+                    untuk mengakses Dashboard TARA.
+                </div>
+
+            </div>
+            """
+        )
 
 
-            st.write("")
+        st.write("")
 
 
-            login_clicked = (
-                st.form_submit_button(
-                    "Masuk    →",
-                    type="primary",
-                    use_container_width=True,
-                )
-            )
+        # ====================================================
+        # LOGIN BUTTON
+        # ====================================================
+
+        login_clicked = st.button(
+            "Masuk   →",
+            type="primary",
+            use_container_width=True,
+            key="tara_login_submit",
+        )
 
 
         # ====================================================
@@ -1339,42 +1301,79 @@ with right:
 
         if login_clicked:
 
-            with st.spinner(
-                "Memverifikasi akun..."
-            ):
+            admin_name_clean = (
+                str(
+                    admin_name
+                    or ""
+                )
+                .strip()
+            )
 
-                ok, error = (
-                    authenticate(
-                        admin_name,
-                        access_code,
-                    )
+            access_code_clean = (
+                str(
+                    access_code
+                    or ""
+                )
+                .strip()
+            )
+
+
+            if not admin_name_clean:
+
+                st.error(
+                    "Username / Email wajib diisi."
                 )
 
-            if ok:
 
-                st.toast(
-                    "Login berhasil.",
-                    icon="✅",
+            elif not access_code_clean:
+
+                st.error(
+                    "Kata sandi wajib diisi."
                 )
 
-                st.switch_page(
-                    "Home.py"
-                )
 
             else:
 
-                st.error(
-                    error
-                )
+                with st.spinner(
+                    "Memverifikasi akun..."
+                ):
 
+                    ok, error = authenticate(
+                        admin_name_clean,
+                        access_code_clean,
+                    )
+
+
+                if ok:
+
+                    st.toast(
+                        "Login berhasil.",
+                        icon="✅",
+                    )
+
+                    st.switch_page(
+                        "Home.py"
+                    )
+
+
+                else:
+
+                    st.error(
+                        error
+                        or
+                        "Username atau kata sandi tidak sesuai."
+                    )
+
+
+        # ====================================================
+        # INTERNAL NOTE
+        # ====================================================
 
         st.html(
             """
             <div class="internal-note">
-
                 🔒 Khusus untuk pengguna internal
                 yang berwenang.
-
             </div>
             """
         )
@@ -1389,20 +1388,22 @@ st.html(
     <div class="page-footer">
 
         <div>
-
-            TARA · Telkom Area Recommendation Assistant
-
+            © 2026 Telkom Indonesia.
+            All rights reserved.
         </div>
-
 
         <div class="footer-links">
 
             <span>
-                Sistem Internal
+                Kebijakan Privasi
             </span>
 
             <span>
-                Telkom Indonesia
+                Syarat dan Ketentuan
+            </span>
+
+            <span>
+                Bantuan
             </span>
 
         </div>

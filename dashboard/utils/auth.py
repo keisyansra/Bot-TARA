@@ -92,10 +92,6 @@ def authenticate(
             "Kode akses wajib diisi.",
         )
 
-    # --------------------------------------------------------
-    # LOAD SECRETS
-    # --------------------------------------------------------
-
     try:
         admins = st.secrets[
             "admins"
@@ -106,10 +102,6 @@ def authenticate(
             False,
             "Konfigurasi akun administrator belum tersedia.",
         )
-
-    # --------------------------------------------------------
-    # CHECK ACCOUNT
-    # --------------------------------------------------------
 
     for account_key in admins:
 
@@ -205,10 +197,6 @@ def logout():
         "_pending_count_seen",
         None,
     )
-
-    # --------------------------------------------------------
-    # CLEAR PAGE STATES
-    # --------------------------------------------------------
 
     for key in list(
         st.session_state.keys()
