@@ -1,0 +1,6 @@
+streamlit>=1.36
+requests
+pandas
+python-dotenv
+openpyxl
+xlrd>=2.0.1
