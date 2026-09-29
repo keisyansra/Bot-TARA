@@ -44,6 +44,7 @@ from handlers.flow2_handler import (
     handle_mark_visited,
     handle_reset_visited,
     handle_city_button,
+    handle_flow2_category_city,
 )
 
 from services.external_api import reverse_location
@@ -213,7 +214,14 @@ def main():
     app.add_handler(
         CallbackQueryHandler(
             handle_flow2_category,
-            pattern=r"^flow2_category_"
+            pattern=r"^flow2_category_(all|company|food|retail|hotel|education|health|automotive|service|industry|office)$"
+        )
+    )
+
+    app.add_handler(
+        CallbackQueryHandler(
+            handle_flow2_category_city,
+            pattern=r"flow2_category_city_"
         )
     )
 

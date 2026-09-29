@@ -1,8 +1,12 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config import ADMIN_ID
-from services.user_service import get_pending_users, update_user_role
-from services.user_service import get_pending_users, update_user_role, delete_user
+from services.user_service import (
+    get_pending_users,
+    update_user_role,
+    update_user_role_and_notify,
+    delete_user,
+)
 
 async def acc_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Command /acc untuk melihat daftar user yang minta akses (Hanya untuk Admin)"""
@@ -49,33 +53,40 @@ async def handle_admin_approval(update: Update, context: ContextTypes.DEFAULT_TY
     target_user_id = int(target_user_id)
 
     if action == "approve":
-        update_user_role(target_user_id, "sales")
-        await query.message.edit_text(f"✅ Akses <b>Disetujui</b> untuk User ID: <code>{target_user_id}</code>.", parse_mode="HTML")
-        
-        try:
-            await context.bot.send_message(
-                chat_id=target_user_id, 
-                text="🎉 <b>Akses Disetujui!</b>\nAdmin telah memberikan akses. Silakan ketik /start untuk membuka Menu Utama.",
-                parse_mode="HTML"
-            )
-        except:
-            pass
+        await update_user_role_and_notify(
+            target_user_id,
+            "sales",
+            context.bot,
+        )
+
+        await query.message.edit_text(
+            f"✅ Akses <b>Disetujui</b> untuk User ID: <code>{target_user_id}</code>.",
+            parse_mode="HTML"
+        )
 
     elif action == "reject":
         update_user_role(target_user_id, "rejected")
-        
-        keyboard = [[InlineKeyboardButton("↩️ Batal Tolak (Kembalikan ke Pending)", callback_data=f"undo_{target_user_id}")]]
-        
+
+        keyboard = [[
+            InlineKeyboardButton(
+                "↩️ Batal Tolak (Kembalikan ke Pending)",
+                callback_data=f"undo_{target_user_id}"
+            )
+        ]]
+
         await query.message.edit_text(
-            f"❌ Akses <b>Ditolak</b> untuk User ID: <code>{target_user_id}</code>.", 
+            f"❌ Akses <b>Ditolak</b> untuk User ID: <code>{target_user_id}</code>.",
             parse_mode="HTML",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
-        
+
         try:
             await context.bot.send_message(
-                chat_id=target_user_id, 
-                text="⛔ Maaf, permintaan akses Anda ke Bot TARA ditolak oleh Admin.\n\n_Jika Anda merasa ini adalah kesalahan, silakan ketik /start kembali untuk meminta ulang._", 
+                chat_id=target_user_id,
+                text=(
+                    "⛔ Maaf, permintaan akses Anda ke Bot TARA ditolak oleh Admin.\n\n"
+                    "Jika Anda merasa ini adalah kesalahan, silakan ketik /start kembali untuk meminta ulang."
+                ),
                 parse_mode="Markdown"
             )
         except:
@@ -83,18 +94,27 @@ async def handle_admin_approval(update: Update, context: ContextTypes.DEFAULT_TY
 
     elif action == "undo":
         update_user_role(target_user_id, "pending")
-        
+
         keyboard = [
             [
-                InlineKeyboardButton("✅ Terima (Sales)", callback_data=f"approve_{target_user_id}"),
-                InlineKeyboardButton("❌ Tolak", callback_data=f"reject_{target_user_id}")
+                InlineKeyboardButton(
+                    "✅ Terima (Sales)",
+                    callback_data=f"approve_{target_user_id}"
+                ),
+                InlineKeyboardButton(
+                    "❌ Tolak",
+                    callback_data=f"reject_{target_user_id}"
+                )
             ]
         ]
+
         await query.message.edit_text(
-            f"⏳ Status dikembalikan ke <b>Pending</b> untuk User ID: <code>{target_user_id}</code>.\nSilakan pilih tindakan:", 
+            f"⏳ Status dikembalikan ke <b>Pending</b> untuk User ID: <code>{target_user_id}</code>.\n"
+            "Silakan pilih tindakan:",
             parse_mode="HTML",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
+        
 async def deluser_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Command /deluser <id_telegram> untuk menghapus user dari database (Hanya Admin)"""
 

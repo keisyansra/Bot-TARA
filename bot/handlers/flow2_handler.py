@@ -40,7 +40,7 @@ async def send_prospect_page(context: ContextTypes.DEFAULT_TYPE, chat_id: int, p
 
     if not all_prospects:
         keyboard_back = [
-            [InlineKeyboardButton("🔙 Kembali ke Pilihan Fitur 2", callback_data="menu_flow2")],
+            [InlineKeyboardButton("🔙 Kembali ke Fitur 2", callback_data="menu_flow2")],
             [InlineKeyboardButton("🏠 Menu Utama", callback_data="menu_back_main")]
         ]
         nav_msg = await context.bot.send_message(
@@ -133,7 +133,7 @@ async def send_prospect_page(context: ContextTypes.DEFAULT_TYPE, chat_id: int, p
     if pagination_row:
         nav_buttons.append(pagination_row)
 
-    nav_buttons.append([InlineKeyboardButton("🔙 Kembali ke Pilihan Fitur 2", callback_data="menu_flow2")])
+    nav_buttons.append([InlineKeyboardButton("🔙 Kembali ke Fitur 2", callback_data="menu_flow2")])
     nav_buttons.append([InlineKeyboardButton("🏠 Menu Utama", callback_data="menu_back_main")])
 
     total_prospects = len(all_prospects)
@@ -147,6 +147,129 @@ async def send_prospect_page(context: ContextTypes.DEFAULT_TYPE, chat_id: int, p
     )
     new_msg_ids.append(nav_msg.message_id)
     context.user_data['last_message_ids'] = new_msg_ids
+
+async def send_category_prospect_page(context: ContextTypes.DEFAULT_TYPE, chat_id: int, page: int = 0):
+    """Render bubble daftar prospek dengan proteksi real-time visited filter"""
+    
+    user_id = chat_id 
+    visited_ids = get_visited_prospect_ids(user_id)
+    
+    all_prospects = [
+        item for item in context.user_data.get('all_prospects', [])
+        if str(item.get('prospect', {}).get('id')) not in visited_ids
+    ]
+    context.user_data['all_prospects'] = all_prospects
+
+    if not all_prospects:
+        keyboard_back = [
+            [InlineKeyboardButton("🔙 Pilih Jenis Usaha", callback_data="flow2_by_category")],
+            [InlineKeyboardButton("🏠 Menu Utama", callback_data="menu_back_main")]
+        ]
+        nav_msg = await context.bot.send_message(
+            chat_id=chat_id,
+            text="✅ Semua prospek dalam daftar pencarian ini sudah selesai Anda kunjungi!",
+            parse_mode="HTML",
+            reply_markup=InlineKeyboardMarkup(keyboard_back)
+        )
+        context.user_data['last_message_ids'] = [nav_msg.message_id]
+        return
+
+    # Pastikan index halaman tidak melebihi batas jika data berkurang
+    max_page = (len(all_prospects) - 1) // PAGE_SIZE
+    if page > max_page:
+        page = max_page
+
+    start_idx = page * PAGE_SIZE
+    end_idx = start_idx + PAGE_SIZE
+    current_page_items = all_prospects[start_idx:end_idx]
+
+    cache_dict = context.user_data.get('prospects_cache', {})
+    for item in current_page_items:
+        p_id = item.get('prospect', {}).get('id')
+        if p_id:
+            cache_dict[str(p_id)] = item
+    context.user_data['prospects_cache'] = cache_dict
+
+    new_msg_ids = []
+
+    for idx, item in enumerate(current_page_items, start=start_idx + 1):
+        prospect = item.get('prospect', {})
+        prospect_id = prospect.get('id')
+
+        raw_nama = prospect.get('name') or prospect.get('nama') or '-'
+        raw_alamat = str(prospect.get('alamat') or '-').strip()
+        raw_wilayah = prospect.get('wilayah', '-')
+
+        nama = html.escape(str(raw_nama))
+        alamat = html.escape(str(raw_alamat))
+        wilayah = html.escape(str(raw_wilayah))
+
+        gmaps = prospect.get('url_gmaps') or f"https://www.google.com/maps/search/?api=1&query={nama.replace(' ', '+')}"
+
+        # Cek apakah ada data jarak dari GPS sales
+        dist_sales = prospect.get('distance_from_sales_m') or prospect.get('distance_m') or prospect.get('distance')
+        if dist_sales is not None and str(dist_sales) != '-':
+            dist_line = f"📐 Jarak dari Anda: <b>{round(float(dist_sales), 1)} meter</b>\n"
+        else:
+            dist_line = ""  
+
+        msg = (
+            f"🏢 <b>{idx}. {nama}</b>\n"
+            f"📍 Alamat: {alamat} ({wilayah})\n"
+            f"{dist_line}"
+            f"📌 Status: <b>BELUM BERLANGGANAN</b>\n"
+            f"🗺️ <a href='{gmaps}'>Buka Lokasi PT/CV di Google Maps</a>"
+        )
+
+        keyboard = [
+            [InlineKeyboardButton("📍 Cek ODP Terdekat (<250m)", callback_data=f"check_odp_{prospect_id}")],
+            [InlineKeyboardButton("✅ Tandai Sudah Dikunjungi", callback_data=f"visited_{prospect_id}")]
+        ]
+
+        sent_msg = await context.bot.send_message(
+            chat_id=chat_id,
+            text=msg,
+            parse_mode="HTML",
+            disable_web_page_preview=True,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+        new_msg_ids.append(sent_msg.message_id)
+
+    nav_buttons = []
+    pagination_row = []
+
+    if page > 0:
+        prev_start = (page - 1) * PAGE_SIZE + 1
+        prev_end = page * PAGE_SIZE
+        pagination_row.append(
+            InlineKeyboardButton(f"⬅️ Sebelumnya ({prev_start}-{prev_end})", callback_data=f"flow2_page_{page - 1}")
+        )
+
+    if end_idx < len(all_prospects):
+        next_count = min(PAGE_SIZE, len(all_prospects) - end_idx)
+        next_range = f"{end_idx + 1}-{end_idx + next_count}"
+        pagination_row.append(
+            InlineKeyboardButton(f"➡️ Selanjutnya ({next_range})", callback_data=f"flow2_page_{page + 1}")
+        )
+
+    if pagination_row:
+        nav_buttons.append(pagination_row)
+
+    nav_buttons.append([InlineKeyboardButton("🔙 Pilih Jenis Usaha", callback_data="flow2_by_category")])
+    nav_buttons.append([InlineKeyboardButton("🏠 Menu Utama", callback_data="menu_back_main")])
+
+    total_prospects = len(all_prospects)
+    current_shown = min(end_idx, total_prospects)
+
+    nav_msg = await context.bot.send_message(
+        chat_id=chat_id,
+        text=f"✅ Menampilkan <b>{start_idx + 1}-{current_shown} dari {total_prospects}</b> data prospek:",
+        parse_mode="HTML",
+        reply_markup=InlineKeyboardMarkup(nav_buttons)
+    )
+    new_msg_ids.append(nav_msg.message_id)
+    context.user_data['last_message_ids'] = new_msg_ids
+
 
 #buat tandain yang udah dikunjungi (checklist)
 async def handle_mark_visited(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -186,7 +309,7 @@ async def handle_flow2_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     keyboard = [
         [InlineKeyboardButton(
-            "🏢 Cari Berdasarkan Nama Usaha",
+            "🏢 Cari Berdasarkan Nama Prospek",
             callback_data="flow2_by_pt"
         )],
         [InlineKeyboardButton(
@@ -228,8 +351,8 @@ async def handle_flow2_options(update: Update, context: ContextTypes.DEFAULT_TYP
         context.user_data['search_mode'] = 'PT'
         context.user_data['flow2_searching_pt'] = True
         await query.message.edit_text(
-            "🔎 *CARI NAMA PT/CV*\n\n"
-            "Ketik nama PT atau CV yang ingin kamu cari.\n\n"
+            "🔎 *CARI NAMA USAHA*\n\n"
+            "Ketik nama usaha  yang ingin kamu cari.\n\n"
             "Contoh:\n"
             "• CV Bintang\n"
             "• PT Batu Karang Produksi SKT Unit 1\n"
@@ -295,54 +418,32 @@ async def handle_flow2_category_menu(update: Update, context: ContextTypes.DEFAU
     await query.answer()
 
     keyboard = [
-        [InlineKeyboardButton(
-            "🔎 Semua Usaha",
-            callback_data="flow2_category_all"
-        )],
-        [InlineKeyboardButton(
-            "🏢 PT / CV / UD",
-            callback_data="flow2_category_company"
-        )],
-        [InlineKeyboardButton(
-            "🍜 Restoran & Kuliner",
-            callback_data="flow2_category_food"
-        )],
-        [InlineKeyboardButton(
-            "🛒 Toko & Retail",
-            callback_data="flow2_category_retail"
-        )],
-        [InlineKeyboardButton(
-            "🏨 Hotel & Penginapan",
-            callback_data="flow2_category_hotel"
-        )],
-        [InlineKeyboardButton(
-            "🎓 Pendidikan",
-            callback_data="flow2_category_education"
-        )],
-        [InlineKeyboardButton(
-            "🏥 Kesehatan",
-            callback_data="flow2_category_health"
-        )],
-        [InlineKeyboardButton(
-            "🔧 Bengkel & Otomotif",
-            callback_data="flow2_category_automotive"
-        )],
-        [InlineKeyboardButton(
-            "🧹 Jasa",
-            callback_data="flow2_category_service"
-        )],
-        [InlineKeyboardButton(
-            "🏭 Industri",
-            callback_data="flow2_category_industry"
-        )],
-        [InlineKeyboardButton(
-            "🏢 Kantor / Perusahaan",
-            callback_data="flow2_category_office"
-        )],
-        [InlineKeyboardButton(
-            "🔙 Kembali ke Pilihan Fitur 2",
-            callback_data="menu_flow2"
-        )]
+        [
+            InlineKeyboardButton("📋 Semua Usaha", callback_data="flow2_category_all"),
+            InlineKeyboardButton("🏢 PT / CV / UD", callback_data="flow2_category_company"),
+        ],
+        [
+            InlineKeyboardButton("🍜 Restoran & Kuliner", callback_data="flow2_category_food"),
+            InlineKeyboardButton("🛍️ Toko & Retail", callback_data="flow2_category_retail"),
+        ],
+        [
+            InlineKeyboardButton("🏨 Hotel & Penginapan", callback_data="flow2_category_hotel"),
+            InlineKeyboardButton("🎓 Pendidikan", callback_data="flow2_category_education"),
+        ],
+        [
+            InlineKeyboardButton("🏥 Kesehatan", callback_data="flow2_category_health"),
+            InlineKeyboardButton("🔧 Bengkel & Otomotif", callback_data="flow2_category_automotive"),
+        ],
+        [
+            InlineKeyboardButton("💼 Jasa", callback_data="flow2_category_service"),
+            InlineKeyboardButton("🏭 Industri", callback_data="flow2_category_industry"),
+        ],
+        [
+            InlineKeyboardButton("🏢 Kantor / Perusahaan", callback_data="flow2_category_office"),
+        ],
+        [
+            InlineKeyboardButton("🔙 Kembali", callback_data="menu_flow2"),
+        ],
     ]
 
     await query.message.edit_text(
@@ -359,17 +460,17 @@ async def handle_flow2_category(update: Update, context: ContextTypes.DEFAULT_TY
     await query.answer()
 
     category_map = {
-        "flow2_category_all": "Semua Usaha",
-        "flow2_category_company": "PT / CV / UD",
-        "flow2_category_food": "Restoran & Kuliner",
-        "flow2_category_retail": "Toko & Retail",
-        "flow2_category_hotel": "Hotel & Penginapan",
-        "flow2_category_education": "Pendidikan",
-        "flow2_category_health": "Kesehatan",
-        "flow2_category_automotive": "Bengkel & Otomotif",
-        "flow2_category_service": "Jasa",
-        "flow2_category_industry": "Industri",
-        "flow2_category_office": "Kantor / Perusahaan",
+        "flow2_category_all": ("all", "Semua Usaha"),
+        "flow2_category_company": ("company", "PT / CV / UD"),
+        "flow2_category_food": ("food", "Restoran & Kuliner"),
+        "flow2_category_retail": ("retail", "Toko & Retail"),
+        "flow2_category_hotel": ("hotel", "Hotel & Penginapan"),
+        "flow2_category_education": ("education", "Pendidikan"),
+        "flow2_category_health": ("health", "Kesehatan"),
+        "flow2_category_automotive": ("automotive", "Bengkel & Otomotif"),
+        "flow2_category_service": ("service", "Jasa"),
+        "flow2_category_industry": ("industry", "Industri"),
+        "flow2_category_office": ("office", "Kantor / Perusahaan"),
     }
 
     selected_category = category_map.get(query.data)
@@ -380,14 +481,143 @@ async def handle_flow2_category(update: Update, context: ContextTypes.DEFAULT_TY
         )
         return
 
+    kategori_key, category_label = selected_category
+
     # Simpan kategori yang dipilih ke session user
-    context.user_data["flow2_category"] = selected_category
+    context.user_data["flow2_category"] = kategori_key
+    context.user_data["flow2_category_label"] = category_label
+
+    cities = [
+        "Malang", "Batu", "Kepanjen", 
+        "Kediri", "Blitar", "Tulungagung",
+        "Nganjuk", "Bojonegoro", "Tuban",
+        "Madiun", "Ngawi", "Ponorogo"
+    ]
+
+    keyboard_cities = []
+
+    row = [
+        InlineKeyboardButton(
+            "Semua Wilayah", 
+            callback_data="flow2_category_city_all"
+        )
+    ]
+    keyboard_cities.append(row)
+
+    row = [] 
+
+    for city in cities: 
+        row.append(
+            InlineKeyboardButton(
+                city,
+                callback_data=f"flow2_category_city_{city}"
+            )
+        )
+        if len(row) == 3:
+            keyboard_cities.append(row)
+            row = []
+    if row:
+        keyboard_cities.append(row)
+
+    keyboard_cities.append([
+        InlineKeyboardButton(
+            "🔙 Kembali Pilih Jenis Usaha",
+            callback_data="flow2_by_category"
+        )
+    ])
+
+    keyboard_cities.append([
+        InlineKeyboardButton(
+            "Kembali ke Pilihan Fitur 2",
+            callback_data="menu_flow2"
+        )
+    ])
 
     await query.message.edit_text(
-        f"🏷️ <b>Kategori dipilih:</b> {html.escape(selected_category)}\n\n"
-        "🔍 Selanjutnya bot akan mencari prospek berdasarkan kategori ini.",
+        f"🏷️ <b>Jenis Usaha:</b> {html.escape(category_label)}\n\n"
+        "🌆 <b>Pilih Kota/Witel</b>\n\n"
+        "Silakan pilih wilayah yang ingin dicari:",
         parse_mode="HTML",
-        reply_markup=InlineKeyboardMarkup([
+        reply_markup=InlineKeyboardMarkup(keyboard_cities)
+    )
+
+async def handle_flow2_category_city(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handler saat user memilih kota setelah memilih jenis usaha."""
+
+    query = update.callback_query
+    await query.answer()
+
+    # Ambil kategori yang sebelumnya dipilih
+    kategori_key = context.user_data.get("flow2_category")
+    category_label = context.user_data.get("flow2_category_label", "Semua Usaha")
+
+    if not kategori_key:
+        await query.message.edit_text(
+            "⚠️ Jenis usaha belum dipilih.",
+            reply_markup=InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton(
+                        "🔙 Pilih Jenis Usaha",
+                        callback_data="flow2_by_category"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        "🔙 Kembali ke Pilihan Fitur 2",
+                        callback_data="menu_flow2"
+                    )
+                ]
+            ])
+        )
+        return
+
+    # Ambil kota dari callback
+    city_name = query.data.replace("flow2_category_city_", "")
+
+    # "all" berarti semua wilayah
+    if city_name == "all":
+        wilayah = None
+        city_label = "Semua Wilayah"
+    else:
+        wilayah = city_name
+        city_label = city_name
+
+    chat_id = update.effective_chat.id
+    user_id = update.effective_user.id
+
+    # Tampilkan loading
+    await query.message.edit_text(
+        f"🔍 Mencari prospek...\n\n"
+        f"🏷️ Jenis Usaha: <b>{html.escape(category_label)}</b>\n"
+        f"🌆 Wilayah: <b>{html.escape(city_label)}</b>",
+        parse_mode="HTML"
+    )
+
+    # Cari berdasarkan kategori + wilayah
+    prospects = search_prospects_from_fastapi(
+        query=None,
+        category=kategori_key,
+        wilayah=wilayah,
+        limit=20,
+    )
+
+    # Hilangkan prospek yang sudah dikunjungi
+    visited_ids = get_visited_prospect_ids(user_id)
+
+    prospects = [
+        item for item in prospects
+        if str(item.get("prospect", {}).get("id")) not in visited_ids
+    ]
+
+    # Jika tidak ada hasil
+    if not prospects:
+        keyboard_back = [
+            [
+                InlineKeyboardButton(
+                    "🔙 Kembali Pilih Kota/Witel",
+                    callback_data=f"flow2_category_{kategori_key}"
+                )
+            ],
             [
                 InlineKeyboardButton(
                     "🔙 Kembali Pilih Jenis Usaha",
@@ -396,11 +626,38 @@ async def handle_flow2_category(update: Update, context: ContextTypes.DEFAULT_TY
             ],
             [
                 InlineKeyboardButton(
-                    "🔙 Kembali ke Pilihan Fitur 2",
-                    callback_data="menu_flow2"
+                    "🏠 Menu Utama",
+                    callback_data="menu_back_main"
                 )
             ]
-        ])
+        ]
+
+        await query.message.edit_text(
+            f"❌ Tidak ditemukan prospek.\n\n"
+            f"🏷️ Jenis Usaha: <b>{html.escape(category_label)}</b>\n"
+            f"🌆 Wilayah: <b>{html.escape(city_label)}</b>",
+            parse_mode="HTML",
+            reply_markup=InlineKeyboardMarkup(keyboard_back)
+        )
+        return
+
+    # Simpan hasil pencarian
+    context.user_data["all_prospects"] = prospects
+    context.user_data["prospects_cache"] = {}
+
+    # Hapus pesan loading
+    try:
+        await query.message.delete()
+    except Exception:
+        pass
+
+    await clear_previous_messages(context, chat_id)
+
+    # Tampilkan daftar prospek
+    await send_category_prospect_page(
+        context,
+        chat_id=chat_id,
+        page=0
     )
 
 async def handle_city_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -422,7 +679,11 @@ async def handle_city_button(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.message.edit_text(f"🔍 Mencari data prospek di kota: <b>{html.escape(city_name)}</b>...", parse_mode="HTML")
 
     # Ambil data dari FastAPI
-    prospects = search_prospects_from_fastapi(city_name, limit=20)
+    prospects = search_prospects_from_fastapi(
+        query=None,
+        wilayah=city_name,
+        limit=20,
+    )
 
     # Filter khusus kota agar lebih akurat
     if prospects:
@@ -535,7 +796,18 @@ async def handle_prospect_text_search(update: Update, context: ContextTypes.DEFA
 
     await update.message.reply_text(f"🔍 Mencari data prospek: <b>{html.escape(raw_text)}</b>...", parse_mode="HTML")
 
-    prospects = search_prospects_from_fastapi(raw_text, limit=20)
+    # prospects = search_prospects_from_fastapi(raw_text, limit=20)
+    if search_mode == 'CITY':
+        prospects = search_prospects_from_fastapi(
+            query=None,
+            wilayah=raw_text,
+            limit=20,
+        )
+    else:
+        prospects = search_prospects_from_fastapi(
+            query=raw_text,
+            limit=20,
+        )
 
     if search_mode == 'CITY' and prospects:
         filtered_prospects = []

@@ -69,11 +69,16 @@ def get_nearby_odps_from_fastapi(
 
     return []
 
-def search_prospects_from_fastapi(query: str, limit: int = 20):
+def search_prospects_from_fastapi(
+        query: str | None = None,
+        category: str | None = None,
+        wilayah: str | None = None,
+        limit: int = 20, 
+):
     """Menembak GET /api/prospects/search"""
     try:
         url = f"{FASTAPI_BASE_URL}/api/prospects/search"
-        params = {"query": query, "limit": limit}
+        params = {"query": query, "category": category, "wilayah": wilayah, "limit": limit}
         response = requests.get(url, params=params, timeout=10)
         
         if response.status_code == 200:

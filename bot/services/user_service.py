@@ -50,3 +50,76 @@ def delete_user(user_id: int) -> bool:
         conn.commit()
 
         return cursor.rowcount > 0
+
+def get_all_users(role=None):
+    """Mengambil semua user, opsional difilter berdasarkan role."""
+    init_user_db()
+
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+
+        if role:
+            cursor = conn.execute(
+                """
+                SELECT
+                    user_id,
+                    username,
+                    full_name,
+                    role,
+                    created_at
+                FROM users
+                WHERE role = ?
+                ORDER BY created_at DESC
+                """,
+                (role,)
+            )
+        else:
+            cursor = conn.execute(
+                """
+                SELECT
+                    user_id,
+                    username,
+                    full_name,
+                    role,
+                    created_at
+                FROM users
+                ORDER BY created_at DESC
+                """
+            )
+
+        return [dict(row) for row in cursor.fetchall()]
+
+async def update_user_role_and_notify(user_id: int, role: str, bot):
+    update_user_role(user_id, role)
+
+    try:
+        if role == "sales":
+            await bot.send_message(
+                chat_id=user_id,
+                text=(
+                    "🎉 <b>Akses Disetujui!</b>\n"
+                    "Admin telah memberikan akses. "
+                    "Silakan ketik /start untuk membuka Menu Utama."
+                ),
+                parse_mode="HTML",
+            )
+
+        elif role == "rejected":
+            await bot.send_message(
+                chat_id=user_id,
+                text=(
+                    "⛔ Maaf, permintaan akses Anda ke Bot TARA "
+                    "ditolak oleh Admin.\n\n"
+                    "_Jika Anda merasa ini adalah kesalahan, "
+                    "silakan ketik /start kembali untuk meminta ulang._"
+                ),
+                parse_mode="Markdown",
+            )
+
+    except Exception as exc:
+        print(
+            f"[USER SERVICE] Role berhasil diubah, "
+            f"tetapi notifikasi Telegram gagal: {exc}"
+        )
+
+    return True

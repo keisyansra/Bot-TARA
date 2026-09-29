@@ -126,17 +126,85 @@ def upsert_silver(df: pd.DataFrame, engine, batch_id: str):
 
 def main():
     engine = get_engine()
+
     df = load_bronze_odp(engine)
     df_clean = clean_odp(df)
 
+    # ========================================================
+    # EXCLUSION DATA ODP YANG DIHAPUS ADMIN
+    # ========================================================
+
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS admin_odp_exclusions (
+                    id_odp BIGINT PRIMARY KEY,
+                    excluded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+        )
+
+    excluded_df = pd.read_sql(
+        """
+        SELECT id_odp
+        FROM admin_odp_exclusions
+        """,
+        engine,
+    )
+
+    if not excluded_df.empty:
+
+        excluded_ids = set(
+            pd.to_numeric(
+                excluded_df["id_odp"],
+                errors="coerce",
+            )
+            .dropna()
+            .astype("int64")
+            .tolist()
+        )
+
+        before_exclusion = len(df_clean)
+
+        df_clean = df_clean[
+            ~df_clean["id_odp"]
+            .astype("int64")
+            .isin(excluded_ids)
+        ]
+
+        removed = (
+            before_exclusion
+            - len(df_clean)
+        )
+
+        if removed:
+            print(
+                f"  - dikeluarkan karena dihapus "
+                f"admin: {removed}"
+            )
+
     if df_clean.empty:
-        print("Nggak ada baris valid buat di-upsert, cek lagi bronze.odp_raw.")
+        print(
+            "Nggak ada baris valid buat di-upsert, "
+            "cek lagi bronze.odp_raw."
+        )
         return
 
-    batch_id = f"silver-{uuid.uuid4().hex[:8]}"
-    upsert_silver(df_clean, engine, batch_id)
-    print(f"Selesai. batch_id: {batch_id}")
+    batch_id = (
+        f"silver-{uuid.uuid4().hex[:8]}"
+    )
 
+    upsert_silver(
+        df_clean,
+        engine,
+        batch_id,
+    )
+
+    print(
+        f"Selesai. batch_id: {batch_id}"
+    )
 
 if __name__ == "__main__":
     main()

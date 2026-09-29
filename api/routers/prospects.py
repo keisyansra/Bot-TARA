@@ -86,8 +86,9 @@ def get_nearby_prospects(
 
 @router.get("/search")
 def search_prospects(
-    query: str = Query(..., min_length=2, description="Kata kunci nama prospek"),
+    query: str | None = Query(None, min_length=2, description="Kata kunci nama prospek"),
     category: str | None = Query(None, description="Kategori usaha"),
+    wilayah: str | None = Query(None, description="Kota/Witel"),
     limit: int = Query(5, ge=1, le=20),
 ):
     """
@@ -102,19 +103,26 @@ def search_prospects(
             nearest_odp_id, nearest_odp_name, nearest_odp_latitude, nearest_odp_longitude,
             odp_distance_m, odp_available_port, badge_status
         FROM gold.prospect_recommendation
-        WHERE nama ILIKE :pattern
-            AND (
-                :category = 'all'
-                OR (
-                    :category = 'company'
-                    AND nama ~* '\m(PT|CV|UD)\M'
-                )
-                OR (
-                    :category != 'company'
-                    AND EXISTS (
-                        SELECT 1
-                        FROM unnest(:category_patterns) AS pattern
-                        WHERE kategori ILIKE '%' || pattern || '%'
+        WHERE (
+            :query IS NULL
+            OR nama ILIKE :pattern
+        )
+        AND (
+            :wilayah IS NULL
+            OR wilayah ILIKE :wilayah_pattern
+        )
+        AND (
+            :category = 'all'
+            OR (
+                :category = 'company'
+                AND nama ~* '\m(PT|CV|UD)\M'
+            )
+            OR (
+                :category != 'company'
+                AND EXISTS (
+                    SELECT 1
+                    FROM unnest(CAST(:category_patterns AS text[])) AS pattern
+                    WHERE kategori ILIKE '%' || pattern || '%'
                 )
             )
         )
@@ -122,8 +130,19 @@ def search_prospects(
         LIMIT :limit;
     """)
 
+    category = category or "all"
+    patterns = CATEGORY_PATTERNS.get(category)
+
     with engine.connect() as conn:
-        rows = conn.execute(sql, {"pattern": f"%{query}%", "category": category, "limit": limit}).mappings().all()
+        rows = conn.execute(sql, {
+            "query": query,
+            "pattern": f"%{query}%" if query else None,
+            "wilayah": wilayah,
+            "wilayah_pattern": f"%{wilayah}%" if wilayah else None,
+            "category": category,
+            "category_patterns": patterns,
+            "limit": limit,
+        }).mappings().all()
 
     formatted_data = []
     for r in rows:
