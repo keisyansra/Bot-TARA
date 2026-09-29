@@ -34,7 +34,7 @@ def load_candidates(engine) -> pd.DataFrame:
     placeholders = ", ".join(f"'{s}'" for s in EXCLUDED_MATCH_STATUS)
     query = f"""
         SELECT
-            p.prospect_id, p.nama, p.alamat, p.latitude, p.longitude,
+            p.prospect_id, p.nama, p.kategori, p.alamat, p.latitude, p.longitude,
             p.url_gmaps, p.wilayah,
             m.match_status AS customer_match_status,
             m.match_score AS customer_match_score
@@ -55,18 +55,19 @@ def upsert_gold(df: pd.DataFrame, engine, batch_id: str):
     with engine.begin() as conn:
         conn.execute(text(f"""
             INSERT INTO gold.prospect_recommendation (
-                prospect_id, nama, alamat, latitude, longitude, geom,
+                prospect_id, nama, kategori, alamat, latitude, longitude, geom,
                 wilayah, url_gmaps, customer_match_status, customer_match_score,
                 batch_id
             )
             SELECT
-                prospect_id, nama, alamat, latitude, longitude,
+                prospect_id, nama, kategori, alamat, latitude, longitude,
                 ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography,
                 wilayah, url_gmaps, customer_match_status, customer_match_score,
                 batch_id
             FROM gold.{STAGING_TABLE}
             ON CONFLICT (prospect_id) DO UPDATE SET
                 nama = EXCLUDED.nama,
+                kategori = EXCLUDED.kategori,
                 alamat = EXCLUDED.alamat,
                 latitude = EXCLUDED.latitude,
                 longitude = EXCLUDED.longitude,

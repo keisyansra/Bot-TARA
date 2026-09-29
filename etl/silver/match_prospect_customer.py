@@ -28,10 +28,20 @@ def load_data(engine):
         engine
     )
     df_cbase = pd.read_sql(
-        "SELECT nipnas as matched_nipnas, standard_name as matched_standard_name, "
-        "nama_normalized as matched_name_normalized FROM silver.cbase_clean",
-        engine
+    """
+    SELECT
+        c.nipnas AS matched_nipnas,
+        c.standard_name AS matched_standard_name,
+        c.nama_normalized AS matched_name_normalized
+    FROM silver.cbase_clean c
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM admin_cbase_exclusions e
+        WHERE e.nipnas = c.nipnas
     )
+    """,
+    engine,
+)
     return df_prospect, df_cbase
 
 

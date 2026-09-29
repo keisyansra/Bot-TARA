@@ -34,6 +34,7 @@ services:
 
     environment:
       DATABASE_URL: postgresql://${DB_USER:-botuser}:${DB_PASSWORD:-botpass}@db:5432/${DB_NAME:-bot_telkom}
+      BOT_TOKEN: ${BOT_TOKEN}
 
     ports:
       - "8000:8000"
@@ -42,6 +43,8 @@ services:
       - ./api:/app/api
       - ./etl:/app/etl
       - ./data:/app/data:ro
+      - ./data/incoming:/app/data/incoming
+      - ./bot/tara_users.db:/app/bot/tara_users.db
 
   bot:
     build:
@@ -61,6 +64,9 @@ services:
       FASTAPI_BASE_URL: http://api:8000
       BOT_TOKEN: ${BOT_TOKEN}
       ADMIN_ID: ${ADMIN_ID}
+
+    volumes:
+      - ./bot/tara_users.db:/app/bot/tara_users.db
 
     command: python bot/bot.py
 
